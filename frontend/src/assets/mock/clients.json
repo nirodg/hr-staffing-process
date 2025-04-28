@@ -1,0 +1,46 @@
+[
+  {
+    "id": 1,
+    "clientName": "Acme Corporation",
+    "email": "contact@acme.com",
+    "avatar": "https://randomuser.me/api/portraits/lego/1.jpg",
+    "contact": {
+      "name": "John Doe",
+      "email": "john.doe@acme.com",
+      "phone": "+40 700 123 456"
+    }
+  },
+  {
+    "id": 2,
+    "clientName": "Globex Ltd.",
+    "email": "info@globex.com",
+    "avatar": "https://randomuser.me/api/portraits/lego/2.jpg",
+    "contact": {
+      "name": "Maria Ionescu",
+      "email": "maria@globex.com",
+      "phone": "+40 723 987 654"
+    }
+  },
+  {
+    "id": 3,
+    "clientName": "Wayne Enterprises",
+    "email": "support@wayne.com",
+    "avatar": "https://randomuser.me/api/portraits/lego/3.jpg",
+    "contact": {
+      "name": "Bruce Wayne",
+      "email": "bruce@wayne.com",
+      "phone": "+40 755 111 000"
+    }
+  },
+  {
+    "id": 4,
+    "clientName": "Stark Industries",
+    "email": "tony@starkindustries.com",
+    "avatar": "https://randomuser.me/api/portraits/lego/4.jpg",
+    "contact": {
+      "name": "Tony Stark",
+      "email": "tony@starkindustries.com",
+      "phone": "+40 711 999 888"
+    }
+  }
+]

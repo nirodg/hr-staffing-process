@@ -1,0 +1,168 @@
+networks:
+  core-services:
+    driver: bridge
+    
+services:
+
+  proxy:
+    image: "traefik:v3.3"
+    container_name: "traefik"
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  db:
+    image: mysql:latest
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: staffing_process
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - core-services
+      
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.1
+    command:
+      - start-dev
+      - --import-realm
+      - --features=scripts
+      - --spi-theme-static-max-age=-1
+      - --spi-theme-cache-themes=false
+      - --spi-theme-cache-templates=false
+    environment:
+      KC_DB: dev-file
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - 8081:8080
+    volumes:
+      - ./docker/keycloak/realm-import.json:/opt/keycloak/data/import/realm-import.json
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "exec 3<>/dev/tcp/localhost/8080" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.services.rule=Host(`keycloak.localhost`)"  
+    networks:
+      - core-services
+  adminer:
+    image: adminer
+    ports:
+      - '8099:8080'
+    depends_on:
+      - db
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - '-f'
+        - 'http://localhost:8080'
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 5s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.services.rule=Host(`adminer.localhost`)"
+      - "traefik.http.routers.services.entrypoints=web"     
+      - "--entryPoints.web.address=:8080"   
+    networks:
+      - core-services
+      
+  zookeeper:
+    image: 'confluentinc/cp-zookeeper:7.5.0'
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - '2181:2181'
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  kafka:
+    image: 'confluentinc/cp-kafka:7.5.0'
+    ports:
+      - '9092:9092'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5    
+
+  frontend-app:
+    build: ./frontend/
+    image: local/stagging-ui
+    ports:
+      - 4200:4200
+    depends_on:
+      backend-app:
+        condition: service_healthy
+    environment:
+      - keycloakUrl=http://keycloak:8080/
+      - apiBaseUrl=http://backend-app:8080/
+      - keycloakRealm=oauth2-staffing-process-UI-realm
+      - keycloakClientId="angular-app"
+
+  backend-app:
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+    image: local/staffing
+    ports:
+      - 8080:8080
+      - 5005:5005
+    depends_on:
+      db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/staffing_process
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=pass
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_ID=oauth2-staffing-process-client
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://host.docker.internal:8081/realms/oauth2-staffing-process-UI-realm
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_AUTHORIZATION_GRANT_TYPE=client_credentials
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8081/realms/oauth2-staffing-process-UI-realm/protocol/openid-connect/certs
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI=http://localhost:8081/realms/oauth2-staffing-process-UI-realm/protocol/openid-connect/token
+      - KEYCLOAK_PUBLIC_CLIENT=false
+      - KEYCLOAK_ENABLE_CORS=true
+      - KEYCLOAK_BEARER_ONLY=true
+      - KEYCLOAK_SSL_REQUIRED=external
+      - KEYCLOAK_USE_RESOURCE_ROLE_MAPPINGS=true
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=host.docker.internal:9092
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - core-services      

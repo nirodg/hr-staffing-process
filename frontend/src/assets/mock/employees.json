@@ -1,0 +1,42 @@
+[
+  {
+    "id": 101,
+    "name": "Ion Popescu",
+    "email": "ion.popescu@example.com",
+    "role": "Frontend Developer",
+    "status": "Active",
+    "avatar": "https://randomuser.me/api/portraits/men/45.jpg"
+  },
+  {
+    "id": 102,
+    "name": "Maria Ionescu",
+    "email": "maria.ionescu@example.com",
+    "role": "Product Manager",
+    "status": "Inactive",
+    "avatar": "https://randomuser.me/api/portraits/women/65.jpg"
+  },
+  {
+    "id": 103,
+    "name": "George Vasilescu",
+    "email": "george.vasilescu@example.com",
+    "role": "QA Engineer",
+    "status": "Suspended",
+    "avatar": "https://randomuser.me/api/portraits/men/33.jpg"
+  },
+  {
+    "id": 104,
+    "name": "Elena Dobre",
+    "email": "elena.dobre@example.com",
+    "role": "UX Designer",
+    "status": "Active",
+    "avatar": "https://randomuser.me/api/portraits/women/30.jpg"
+  },
+  {
+    "id": 105,
+    "name": "Andrei Petrescu",
+    "email": "andrei.petrescu@example.com",
+    "role": "Backend Developer",
+    "status": "Inactive",
+    "avatar": "https://randomuser.me/api/portraits/men/20.jpg"
+  }
+]
