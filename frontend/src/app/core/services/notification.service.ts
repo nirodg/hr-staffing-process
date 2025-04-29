@@ -8,7 +8,7 @@ import { KafkaPayload } from "../models/kafka-payload";
 import { KafkaAction } from "../constants/kafka-actions";
 import { KeycloakAuthService } from "./keycloak-auth.service";
 import { Router } from "@angular/router";
-
+// import {KafkaService} from "./kafka.service"
 
 @Injectable({ providedIn: "root" })
 export class NotificationService {
@@ -19,20 +19,20 @@ export class NotificationService {
   private router = inject(Router);
 
   constructor(private ws: WebSocketService) {
-    this.ws.connect();
+    // this.ws.connect();
 
-    this.ws.getMessages().subscribe((payload: KafkaPayload) => {
-      const message = this.mapPayloadToMessage(payload);
+    // this.ws.getMessages().subscribe((payload: KafkaPayload) => {
+    //   const message = this.mapPayloadToMessage(payload);
 
-      if (payload.userId === this.auth.getUsername()) return;
+    //   if (payload.userId === this.auth.getUsername()) return;
 
-      this.subject.next(message);
-      this.snack.open(message, "Close", {
-        duration: 10000,
-        panelClass: ["bg-blue-600", "text-white"],
-      });
-      this.handleDataRefresh(payload);
-    });
+    //   this.subject.next(message);
+    //   this.snack.open(message, "Close", {
+    //     duration: 10000,
+    //     panelClass: ["bg-blue-600", "text-white"],
+    //   });
+    //   this.handleDataRefresh(payload);
+    // });
   }
 
   getMessages(): Observable<string> {

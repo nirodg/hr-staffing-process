@@ -3,7 +3,6 @@ package org.db.hrsp.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,11 +20,11 @@ import org.springframework.web.cors.CorsConfiguration;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${spring.security.oauth2.admin.role}")
-    private String ADMIN_ROLE;
+//    @Value("${spring.security.oauth2.admin.role}")
+//    private String ADMIN_ROLE;
 
-    private static final String PUBLIC_CLIENT_ADMIN_ROLE = "ROLE_CLIENT_PUBLIC_ADMIN";
-    private static final String PUBLIC_CLIENT_USER_ROLE = "ROLE_CLIENT_PUBLIC_USER";
+    private static final String ROLE_ADMIN = "ROLE_CLIENT_PUBLIC_ADMIN";
+    private static final String ROLE_USER = "ROLE_CLIENT_PUBLIC_USER";
 
     @Value("${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
     private String issuerUri;
@@ -38,7 +37,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        System.out.println("✅ SecurityFilterChain is being initialized!");
         Customizer<CorsConfigurer<HttpSecurity>> corsCustomizer = cors -> cors
                 .configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
@@ -52,16 +50,8 @@ public class SecurityConfig {
         http.cors(corsCustomizer)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/clients/**").hasAuthority(PUBLIC_CLIENT_ADMIN_ROLE)
-                        .requestMatchers(HttpMethod.PUT, "/clients/**").hasAuthority(PUBLIC_CLIENT_ADMIN_ROLE)
-                        .requestMatchers(HttpMethod.DELETE, "/clients/**").hasAuthority(PUBLIC_CLIENT_ADMIN_ROLE)
-
-                        .requestMatchers(HttpMethod.POST, "/employees/**").hasAuthority(PUBLIC_CLIENT_ADMIN_ROLE)
-                        .requestMatchers(HttpMethod.PUT, "/employees/**").hasAuthority(PUBLIC_CLIENT_ADMIN_ROLE)
-                        .requestMatchers(HttpMethod.DELETE, "/employees/**").hasAuthority(PUBLIC_CLIENT_ADMIN_ROLE)
-
-                        .requestMatchers("/home-admin/**").hasAuthority(PUBLIC_CLIENT_ADMIN_ROLE)
-                        .anyRequest().hasAuthority(PUBLIC_CLIENT_USER_ROLE)
+                        .requestMatchers("/api/admin/**").hasAuthority(ROLE_ADMIN)
+                        .anyRequest().hasAuthority(ROLE_USER)
                 )
                 .csrf(AbstractHttpConfigurer::disable)
 

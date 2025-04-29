@@ -1,10 +1,10 @@
 package org.db.hrsp.config;
 
-import org.db.hrsp.kafka.KafkaPayload;
-import org.db.hrsp.kafka.KafkaPersistEventProducer;
-import org.db.hrsp.model.Role;
-import org.db.hrsp.model.User;
-import org.db.hrsp.repository.UserRepository;
+import org.db.hrsp.kafka.model.KafkaPayload;
+import org.db.hrsp.kafka.producers.PersistEventProducer;
+import org.db.hrsp.service.repository.model.Role;
+import org.db.hrsp.service.repository.model.User;
+import org.db.hrsp.service.repository.UserRepository;
 import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,12 +31,12 @@ public class JwtInterceptor implements HandlerInterceptor {
     private final UserRepository userRepository;
 
     private final HttpServletRequest request;
-    private final KafkaPersistEventProducer eventProducer;
+    private final PersistEventProducer eventProducer;
 
     private User currentUser;
 
     @Autowired
-    public JwtInterceptor(UserRepository userRepository, HttpServletRequest request, KafkaPersistEventProducer eventProducer) {
+    public JwtInterceptor(UserRepository userRepository, HttpServletRequest request, PersistEventProducer eventProducer) {
         this.userRepository = userRepository;
         this.request = request;
         this.eventProducer = eventProducer;

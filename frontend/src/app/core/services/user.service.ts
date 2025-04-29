@@ -11,7 +11,7 @@ export class UserService {
   constructor(private http: HttpClient) {}
 
   getMyProfile(): Observable<UserDTO> {
-    return this.http.get<UserDTO>(`${this.baseUrl}/me`);
+    return this.http.get<UserDTO>(`${this.baseUrl}/my_account`);
   }
 
   updateMyProfile(profile: Partial<UserDTO>): Observable<UserDTO> {
