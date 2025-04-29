@@ -49,7 +49,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
             log.warn("No JWT found in security context.");
-            return true;
+            return false;
         }
 
         return !getUserFromToken(jwt);

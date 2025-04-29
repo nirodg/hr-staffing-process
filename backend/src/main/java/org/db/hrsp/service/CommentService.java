@@ -2,6 +2,7 @@ package org.db.hrsp.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.db.hrsp.api.config.ApiException;
 import org.db.hrsp.config.JwtInterceptor;
 import org.db.hrsp.api.dto.CommentDTO;
 import org.db.hrsp.api.dto.mapper.CommentMapper;
@@ -13,6 +14,7 @@ import org.db.hrsp.service.repository.model.User;
 import org.db.hrsp.service.repository.CommentRepository;
 import org.db.hrsp.service.repository.StaffingProcessRepository;
 import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,15 +48,23 @@ public class CommentService {
         User current = jwtInterceptor.getCurrentUser(); // adjust if needed
         comment.setAuthor(current);
 
-        Comment saved = commentRepository.save(comment);
+        Comment saved = null;
+        try {
+            saved = commentRepository.save(comment);
+        } catch (Exception e) {
+            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, null, "Error saving comment");
+        }
 
-
-        eventProducer.publishEvent(
-                KafkaPayload.builder()
-                        .action(KafkaPayload.Action.CREATE)
-                        .userId(jwtInterceptor.getCurrentUser().getUsername())
-                        .topic(KafkaPayload.Topic.COMMENTS)
-                        .build());
+        try {
+            eventProducer.publishEvent(
+                    KafkaPayload.builder()
+                            .action(KafkaPayload.Action.CREATE)
+                            .userId(jwtInterceptor.getCurrentUser().getUsername())
+                            .topic(KafkaPayload.Topic.COMMENTS)
+                            .build());
+        } catch (RuntimeException re) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, null, "Failed to send message to Kafka");
+        }
 
         return commentMapper.toDto(saved);
     }

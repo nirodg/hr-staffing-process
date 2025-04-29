@@ -70,7 +70,8 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "buildTarget": "angular-starter:build"
+            "buildTarget": "angular-starter:build",
+            "proxyConfig": "src/proxy.conf.json"
           },
           "configurations": {
             "production": {

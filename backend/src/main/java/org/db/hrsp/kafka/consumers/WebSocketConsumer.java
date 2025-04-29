@@ -16,6 +16,6 @@ public class WebSocketConsumer {
     @KafkaListener(topics = {"CLIENTS", "STAFFING_PROCESS", "EMPLOYEES", "COMMENTS"})
     public void onKafkaMessage(String message) {
         log.info("Received Kafka message: " + message);
-        messagingTemplate.convertAndSend("/backend-updates", message);
+        //messagingTemplate.convertAndSend("/backend-updates", message);
     }
 }

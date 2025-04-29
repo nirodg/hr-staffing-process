@@ -2,13 +2,13 @@ import { inject, Injectable } from "@angular/core";
 import { Subject, Observable } from "rxjs";
 import { KafkaTopic } from "../constants/kafka-topic";
 import { RefreshService } from "./refresh.service";
-import { WebSocketService } from "./websocket.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { KafkaPayload } from "../models/kafka-payload";
 import { KafkaAction } from "../constants/kafka-actions";
 import { KeycloakAuthService } from "./keycloak-auth.service";
 import { Router } from "@angular/router";
-// import {KafkaService} from "./kafka.service"
+import {KafkaRestService} from "./kafka.service"
+
 
 @Injectable({ providedIn: "root" })
 export class NotificationService {
@@ -17,22 +17,12 @@ export class NotificationService {
   private refreshService = inject(RefreshService);
   private auth = inject(KeycloakAuthService);
   private router = inject(Router);
+  constructor(private kafkaRest: KafkaRestService) {
 
-  constructor(private ws: WebSocketService) {
-    // this.ws.connect();
-
-    // this.ws.getMessages().subscribe((payload: KafkaPayload) => {
-    //   const message = this.mapPayloadToMessage(payload);
-
-    //   if (payload.userId === this.auth.getUsername()) return;
-
-    //   this.subject.next(message);
-    //   this.snack.open(message, "Close", {
-    //     duration: 10000,
-    //     panelClass: ["bg-blue-600", "text-white"],
-    //   });
-    //   this.handleDataRefresh(payload);
-    // });
+    this.kafkaRest.listenToTopic('EMPLOYEES').subscribe((messages) => {
+      console.log('Kafka REST message:', messages);
+      // this.handleDataRefresh('COMMENTS');
+    });
   }
 
   getMessages(): Observable<string> {

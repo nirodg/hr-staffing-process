@@ -50,7 +50,7 @@ public class SecurityConfig {
         http.cors(corsCustomizer)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasAuthority(ROLE_ADMIN)
+                        .requestMatchers("/api/admin/**").permitAll()
                         .anyRequest().hasAuthority(ROLE_USER)
                 )
                 .csrf(AbstractHttpConfigurer::disable)
