@@ -68,7 +68,7 @@ import { RefreshService } from "src/app/core/services/refresh.service";
             <button mat-button (click)="seeComments(row)">
                 <mat-icon>info</mat-icon>
                 Details
-            </button> 
+            </button>            
           </td>
         </tr>
       </tbody>
