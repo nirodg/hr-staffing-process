@@ -4,5 +4,5 @@ import { Injectable } from '@angular/core';
 @Injectable({ providedIn: 'root' })
 export class ConfigService {
   readonly siteName = 'Staffing Portal';
-  readonly companyName = 'Adesso Romania';
+  readonly companyName = 'Your Company';
 }

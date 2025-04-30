@@ -14,6 +14,7 @@ import { CommentDTO } from "src/app/core/models/comment-dto.model";
 import { StaffingService } from "src/app/core/services/staffing.service";
 import { RefreshService } from "src/app/core/services/refresh.service";
 import { KeycloakAuthService } from "src/app/core/services/keycloak-auth.service";
+import { Location } from '@angular/common';
 
 @Component({
   selector: "app-comments-view",
@@ -165,7 +166,8 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
     private commentsService: CommentService,
     private staffingService: StaffingService,
     private refreshService: RefreshService,
-    private auth : KeycloakAuthService
+    private auth : KeycloakAuthService,
+    private location: Location
   ) {}
 
   ngOnInit(): void {
@@ -276,7 +278,7 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
   }
 
   goBack() {
-    this.router.navigate(["/staffing"]);
+    this.location.back();
   }
 
   markAsCompleted(): void {

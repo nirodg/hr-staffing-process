@@ -15,6 +15,7 @@ import { Router } from "@angular/router";
 import { UserService } from "../../core/services/user.service";
 import { EmployeeService } from "../../core/services/employee.service";
 import { UserDTO } from "../../core/models/user-dto.model";
+import { Location } from '@angular/common';
 
 @Component({
   selector: "app-user-form",
@@ -32,6 +33,12 @@ import { UserDTO } from "../../core/models/user-dto.model";
       *ngIf="form"
       class="max-w-2xl mx-auto mt-6 bg-white shadow rounded-xl p-6 space-y-6"
     >
+    <button
+            class="px-4 py-2 text-sm rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
+            (click)="goBack()"
+          >
+            ← Go Back
+          </button>
       <h2 class="text-xl font-semibold text-gray-800 dark:text-black">
         {{ title }}
       </h2>
@@ -84,6 +91,7 @@ export class UserFormComponent implements OnInit {
     private userService: UserService,
     private employeeService: EmployeeService,
     private router: Router,
+    private location: Location,
     @Optional() private dialogRef?: MatDialogRef<UserFormComponent>,
     @Optional()
     @Inject(MAT_DIALOG_DATA)
@@ -130,5 +138,8 @@ export class UserFormComponent implements OnInit {
         this.router.navigate(["/employees"]);
       });
     }
+  }
+  goBack() {
+    this.location.back();
   }
 }
