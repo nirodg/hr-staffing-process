@@ -61,6 +61,7 @@ public class CommentService {
                             .action(KafkaPayload.Action.CREATE)
                             .userId(jwtInterceptor.getCurrentUser().getUsername())
                             .topic(KafkaPayload.Topic.COMMENTS)
+                            .entityId(saved.getStaffingProcess().getId()) // We're using the staffing process ID as the entity ID for now
                             .build());
         } catch (RuntimeException re) {
             throw new ApiException(HttpStatus.BAD_REQUEST, null, "Failed to send message to Kafka");

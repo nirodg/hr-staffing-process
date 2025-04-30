@@ -11,6 +11,8 @@ public class KafkaPayload {
     private String userId;
     private Topic topic;
     private Action action;
+    private Long entityId; // e.g., comment ID, staffing ID, client ID
+    private Long parentId; // optional: for replies, or nesting
 
     public enum Action {
         CREATE,
