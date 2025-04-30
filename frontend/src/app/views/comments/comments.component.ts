@@ -13,6 +13,7 @@ import { CommentService } from "src/app/core/services/comment-service";
 import { CommentDTO } from "src/app/core/models/comment-dto.model";
 import { StaffingService } from "src/app/core/services/staffing.service";
 import { RefreshService } from "src/app/core/services/refresh.service";
+import { KeycloakAuthService } from "src/app/core/services/keycloak-auth.service";
 
 @Component({
   selector: "app-comments-view",
@@ -34,7 +35,7 @@ import { RefreshService } from "src/app/core/services/refresh.service";
             ← Go Back
           </button>
           <button
-            *ngIf="isActive"
+            *ngIf="isActive && isAdmin()"
             class="px-4 py-2 text-sm rounded bg-green-600 hover:bg-green-700 text-white"
             (click)="markAsCompleted()"
           >
@@ -163,7 +164,8 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
     private router: Router,
     private commentsService: CommentService,
     private staffingService: StaffingService,
-    private refreshService: RefreshService
+    private refreshService: RefreshService,
+    private auth : KeycloakAuthService
   ) {}
 
   ngOnInit(): void {
@@ -281,5 +283,9 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
     this.staffingService.markAsCompleted(this.staffingId).subscribe(() => {
       this.router.navigate(["/staffing"]);
     });
+  }
+
+  isAdmin(): boolean{
+    return this.auth.isAdmin();
   }
 }
