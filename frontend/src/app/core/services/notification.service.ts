@@ -9,7 +9,6 @@ import { KeycloakAuthService } from "./keycloak-auth.service";
 import { Router } from "@angular/router";
 import { WebSocketService } from "./websocket.service";
 
-
 @Injectable({ providedIn: "root" })
 export class NotificationService {
   private subject = new Subject<string>();
@@ -26,12 +25,7 @@ export class NotificationService {
 
       if (payload.userId === this.auth.getUsername()) return;
 
-      this.subject.next(message);
-      this.snack.open(message, "Close", {
-        duration: 10000,
-        panelClass: ["bg-blue-600", "text-white"],
-      });
-      this.handleDataRefresh(payload);
+      this.handleDataRefresh(payload, message);
     });
   }
 
@@ -68,20 +62,42 @@ export class NotificationService {
     }
   }
 
-  private handleDataRefresh(payload: KafkaPayload) {
+  private handleDataRefresh(payload: KafkaPayload, snackMessage: string) {
+    const currentUrl = this.router.url;
+    
+    if(currentUrl){
+      console.log(currentUrl)
+    }
+
+
     switch (payload.topic) {
       case KafkaTopic.CLIENTS:
-        this.refreshService.refreshClients();
-        break;
+        if(currentUrl === "/clients"){
+          this.displaySnack(snackMessage);
+          this.refreshService.refreshClients();
+          break;
+        }
       case KafkaTopic.EMPLOYEES:
         this.refreshService.refreshEmployees();
         break;
       case KafkaTopic.STAFFING_PROCESS:
-        this.refreshService.refreshStaffing();
+        if (currentUrl == "/staffing") this.displaySnack(snackMessage);this.refreshService.refreshStaffing();
         break;
       case KafkaTopic.COMMENTS:
-        this.refreshService.refreshComments();
+        // ✅ only reload if user is viewing a comment thread
+        if (/^\/staffing\/\d+\/comments$/.test(currentUrl)) {
+          this.refreshService.refreshComments();
+          this.displaySnack(snackMessage);
+        }
         break;
     }
+  }
+
+  private displaySnack(snackMessage: string) {
+    this.subject.next(snackMessage);
+    this.snack.open(snackMessage, "Close", {
+      duration: 10000,
+      panelClass: ["bg-blue-600", "text-white"],
+    });
   }
 }
