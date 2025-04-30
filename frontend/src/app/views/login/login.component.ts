@@ -2,28 +2,34 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { KeycloakAuthService } from 'src/app/core/services/keycloak-auth.service';
+import { environment } from 'src/environments/environment'
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div class="max-w-md w-full text-center bg-white shadow-xl rounded-2xl p-8">
-        <div class="text-5xl mb-4 text-blue-600">🔐</div>
-        <h1 class="text-2xl font-semibold mb-2">Authentication Required</h1>
-        <p class="text-gray-600 mb-6">You must log in to access this app.</p>
+    <div class="min-h-screen bg-gray-400 flex items-center justify-center">
+      <div class="bg-white p-10 rounded-2xl shadow-md w-full max-w-md text-center">
+        <img src="assets/logo.png" alt="Logo" class="mx-auto mb-6" width="120" height="auto">
+        <h1 class="text-2xl font-bold mb-2">{{ this.appName }}</h1>
+        <p class="mb-6 text-gray-600">Secure access to your account</p>
         <button
           (click)="login()"
-          class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"
+          class="w-full py-3 px-6 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition"
         >
-          Login with Keycloak
+          
+          Log in with Keycloak
         </button>
+        <a href="#" class="block mt-4 text-sm text-gray-500 hover:text-blue-600">Need help?</a>
       </div>
     </div>
-  `
+  `,
 })
 export class LoginComponent {
+
+  public appName = environment.appName;
+
   constructor(
     private auth: KeycloakAuthService,
     private router: Router

@@ -46,6 +46,9 @@ services:
       - "traefik.http.routers.services.rule=Host(`keycloak.localhost`)"  
     networks:
       - core-services
+      
+      ## ./kc.sh export --file realm.json --realm demo-realm
+      
   adminer:
     image: adminer
     ports:
