@@ -8,7 +8,7 @@ export const environment = {
   apiBaseUrl: 'http://localhost:8080/api',
   useMock: false,
   keycloakUrl: 'http://localhost:8081',
-  keycloakRealm: 'oauth2-staffing-process-UI-realm',
+  keycloakRealm: 'staffing-process-ui-realm',
   keycloakClientId: 'angular-app',
 };
 

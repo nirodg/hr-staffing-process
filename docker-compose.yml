@@ -4,21 +4,6 @@ networks:
     
 services:
 
-  proxy:
-    image: "traefik:v3.3"
-    container_name: "traefik"
-    command:
-      #- "--log.level=DEBUG"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entryPoints.web.address=:80"
-    ports:
-      - "80:80"
-      - "8080:8080"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-
   db:
     image: mysql:latest
     ports:
@@ -143,8 +128,8 @@ services:
     environment:
       - keycloakUrl=http://keycloak:8080/
       - apiBaseUrl=http://backend-app:8080/
-      - keycloakRealm=oauth2-staffing-process-UI-realm
-      - keycloakClientId="angular-app"
+      - keycloakRealm=staffing-process-ui-realm
+      - keycloakClientId=angular-app
 
   backend-app:
     build:
@@ -164,10 +149,10 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=pass
       - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_ID=oauth2-staffing-process-client
-      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://host.docker.internal:8081/realms/oauth2-staffing-process-UI-realm
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://host.docker.internal:8081/realms/staffing-process-ui-realm
       - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_AUTHORIZATION_GRANT_TYPE=client_credentials
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8081/realms/oauth2-staffing-process-UI-realm/protocol/openid-connect/certs
-      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI=http://localhost:8081/realms/oauth2-staffing-process-UI-realm/protocol/openid-connect/token
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8081/realms/staffing-process-ui-realm/protocol/openid-connect/certs
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI=http://localhost:8081/realms/staffing-process-ui-realm/protocol/openid-connect/token
       - KEYCLOAK_PUBLIC_CLIENT=false
       - KEYCLOAK_ENABLE_CORS=true
       - KEYCLOAK_BEARER_ONLY=true
