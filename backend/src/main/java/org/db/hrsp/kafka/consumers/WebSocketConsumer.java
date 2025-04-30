@@ -13,9 +13,9 @@ public class WebSocketConsumer {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    @KafkaListener(topics = {"CLIENTS", "STAFFING_PROCESS", "EMPLOYEES", "COMMENTS"})
+    @KafkaListener(topics = {"CLIENTS", "STAFFING_PROCESS", "EMPLOYEES", "COMMENTS"}, groupId = "backend-consumer")
     public void onKafkaMessage(String message) {
         log.info("Received Kafka message: " + message);
-        //messagingTemplate.convertAndSend("/backend-updates", message);
+        messagingTemplate.convertAndSend("/backend-updates", message);
     }
 }

@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { HttpClient, HttpClientModule } from "@angular/common/http";
 import { MatTableModule } from "@angular/material/table";
+import { MatIcon, MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog } from "@angular/material/dialog";
 
@@ -26,6 +27,7 @@ import { RefreshService } from "src/app/core/services/refresh.service";
     HttpClientModule,
     MatTableModule,
     MatButtonModule,
+    MatIconModule,
     StatusBadgeComponent
 ],
   template: `
@@ -63,9 +65,10 @@ import { RefreshService } from "src/app/core/services/refresh.service";
             <app-status-badge [isActive]="!row.active" />
           </td>
           <td class="px-4 py-3 text-right">
-            <button class="text-blue-600 hover:underline text-sm" (click)="seeComments(row)">
-              See Comments
-            </button>
+            <button mat-button (click)="seeComments(row)">
+                <mat-icon>info</mat-icon>
+                Details
+            </button> 
           </td>
         </tr>
       </tbody>

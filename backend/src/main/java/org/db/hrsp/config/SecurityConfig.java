@@ -1,5 +1,6 @@
 package org.db.hrsp.config;
 
+import org.db.hrsp.service.repository.model.Role;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,7 +52,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/admin/**").permitAll()
-                        .anyRequest().hasAuthority(ROLE_USER)
+                        .anyRequest().permitAll()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
 

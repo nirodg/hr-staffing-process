@@ -119,17 +119,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5    
-  kafka-rest:
-    image: confluentinc/cp-kafka-rest:4.1.1
-    hostname: kafka-rest
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
     ports:
-    - "38082:38082"
+      - 8888:8080
     depends_on:
       - kafka
     environment:
-      KAFKA_REST_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_REST_HOST_NAME: kafka-rest
-      KAFKA_REST_LISTENERS: http://kafka-rest:38082 
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      DYNAMIC_CONFIG_ENABLED: 'true'
 
   frontend-app:
     build: ./frontend/

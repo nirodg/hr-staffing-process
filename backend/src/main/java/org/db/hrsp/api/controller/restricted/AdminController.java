@@ -18,6 +18,6 @@ public class AdminController {
 
     @PostMapping("/kafka")
     public void genKafkaMsg(){
-        eventProducer.publishEvent(KafkaPayload.builder().action(KafkaPayload.Action.CREATE).topic(KafkaPayload.Topic.CLIENTS).build());
+        eventProducer.publishEvent(KafkaPayload.builder().action(KafkaPayload.Action.CREATE).topic(KafkaPayload.Topic.EMPLOYEES).build());
     }
 }

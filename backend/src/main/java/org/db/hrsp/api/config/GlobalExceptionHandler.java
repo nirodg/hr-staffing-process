@@ -1,6 +1,7 @@
 package org.db.hrsp.api.config;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -17,7 +18,8 @@ import java.util.stream.Collectors;
  * Global exception handler for the application.
  * This class handles exceptions thrown by the controllers and returns appropriate HTTP responses.
  */
-//@RestControllerAdvice
+@Slf4j
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final URI DEFAULT_TYPE = URI.create("https://example.com/problem");
@@ -29,6 +31,7 @@ public class GlobalExceptionHandler {
         pd.setType(ex.getType() == null ? DEFAULT_TYPE : ex.getType());
         pd.setTitle(ex.getTitle());
         pd.setInstance(URI.create(request.getRequestURI()));
+        log.warn(ex.getMessage(), ex);
         return pd;
     }
 
@@ -47,6 +50,7 @@ public class GlobalExceptionHandler {
                         FieldError::getField,
                         DefaultMessageSourceResolvable::getDefaultMessage));
         pd.setProperty("errors", errors);
+        log.warn(ex.getMessage(), ex);
         return pd;
     }
 
@@ -56,7 +60,10 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error");
         pd.setType(URI.create("https://example.com/problem/unexpected-error"));
         pd.setTitle("Internal error");
+        log.warn(ex.getMessage(), ex);
         pd.setInstance(URI.create(request.getRequestURI()));
         return pd;
     }
+
+
 }

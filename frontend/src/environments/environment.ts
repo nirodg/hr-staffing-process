@@ -4,6 +4,7 @@
 
 export const environment = {
   production: false,
+  baseUrl: 'http://localhost:8080',
   apiBaseUrl: 'http://localhost:8080/api',
   useMock: false,
   keycloakUrl: 'http://localhost:8081',

@@ -10,6 +10,7 @@ import { EmployeeService } from "src/app/core/services/employee.service";
 import { UserFormComponent } from "src/app/shared/user-form/user-form.component";
 import { StatusBadgeComponent } from "../../shared/status-badge-component/status-badge-component.component";
 import { RefreshService } from "src/app/core/services/refresh.service";
+import {getRoleFromEnum} from "../../core/constants/role-map"
 
 @Component({
   selector: "app-employees",
@@ -61,7 +62,7 @@ import { RefreshService } from "src/app/core/services/refresh.service";
                 </div>
               </td>
               <td class="px-4 py-3">{{ e.email }}</td>
-              <td class="px-4 py-3">{{ e.roles }}</td>
+              <td class="px-4 py-3">{{ this.getRole(e.roles) }}</td>
               <td class="px-4 py-3">{{ e.position }}</td>
               <td class="px-4 py-3">
                 <div class="flex items-center">
@@ -108,5 +109,9 @@ export class EmployeesComponent {
     this.employeeService.getAll().subscribe((data) => {
       this.employees = data;
     });
+  }
+
+  getRole(role: string): string {
+    return getRoleFromEnum(role);
   }
 }
