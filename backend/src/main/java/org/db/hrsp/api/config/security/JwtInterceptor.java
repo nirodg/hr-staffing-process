@@ -1,4 +1,4 @@
-package org.db.hrsp.config;
+package org.db.hrsp.api.config.security;
 
 import org.db.hrsp.kafka.model.KafkaPayload;
 import org.db.hrsp.kafka.producers.PersistEventProducer;

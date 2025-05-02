@@ -68,6 +68,7 @@ export class NotificationService {
     switch (payload.topic) {
       case KafkaTopic.CLIENTS:
         if (currentUrl === "/clients") {
+          console.log("ok")
           this.displaySnack(snackMessage);
           this.refreshService.refreshClients();
         }

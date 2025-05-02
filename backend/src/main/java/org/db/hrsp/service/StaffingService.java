@@ -2,18 +2,20 @@ package org.db.hrsp.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.db.hrsp.config.JwtInterceptor;
+import org.db.hrsp.api.config.ApiException;
+import org.db.hrsp.api.config.security.JwtInterceptor;
 import org.db.hrsp.api.dto.StaffingProcessDTO;
 import org.db.hrsp.api.dto.mapper.StaffingProcessMapper;
 import org.db.hrsp.kafka.model.KafkaPayload;
 import org.db.hrsp.kafka.producers.PersistEventProducer;
-import org.db.hrsp.service.repository.model.Client;
-import org.db.hrsp.service.repository.model.StaffingProcess;
-import org.db.hrsp.service.repository.model.User;
 import org.db.hrsp.service.repository.ClientRepository;
 import org.db.hrsp.service.repository.StaffingProcessRepository;
 import org.db.hrsp.service.repository.UserRepository;
+import org.db.hrsp.service.repository.model.Client;
+import org.db.hrsp.service.repository.model.StaffingProcess;
+import org.db.hrsp.service.repository.model.User;
 import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,13 +48,17 @@ public class StaffingService {
 
         updateEmployeeAndClientStaffingProcesses(employee, client, staffingProcess);
 
-        eventProducer.publishEvent(
-                KafkaPayload.builder()
-                        .action(KafkaPayload.Action.CREATE)
-                        .userId(jwtInterceptor.getCurrentUser().getUsername())
-                        .topic(KafkaPayload.Topic.STAFFING_PROCESS)
-                        .build()
-        );
+        try {
+            eventProducer.publishEvent(
+                    KafkaPayload.builder()
+                            .action(KafkaPayload.Action.CREATE)
+                            .userId(jwtInterceptor.getCurrentUser().getUsername())
+                            .topic(KafkaPayload.Topic.STAFFING_PROCESS)
+                            .build()
+            );
+        } catch (RuntimeException re) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, null, "Failed to send message to Kafka");
+        }
 
         return staffingProcessMapper.toDto(staffingProcess);
     }

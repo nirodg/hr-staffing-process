@@ -1,4 +1,4 @@
-package org.db.hrsp.config;
+package org.db.hrsp.api.config.security;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.converter.Converter;

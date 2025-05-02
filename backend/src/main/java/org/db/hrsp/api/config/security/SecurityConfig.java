@@ -1,6 +1,5 @@
-package org.db.hrsp.config;
+package org.db.hrsp.api.config.security;
 
-import org.db.hrsp.service.repository.model.Role;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,11 +48,11 @@ public class SecurityConfig {
                 });
 
         http.cors(corsCustomizer)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers("/api/admin/**").permitAll()
-                        .anyRequest().permitAll()
-                )
+//                .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers("/**").hasRole(ROLE_USER)
+//                        .requestMatchers("/api/admin/**").hasRole(ROLE_ADMIN)
+//                        .anyRequest().permitAll()
+//                )
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -85,6 +85,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - core-services    
       
   kafka:
     image: 'confluentinc/cp-kafka:7.5.0'
@@ -107,9 +109,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5    
-
+    networks:
+      - core-services    
+      
   kafka-ui:
-    container_name: kafka-ui
     image: provectuslabs/kafka-ui:latest
     ports:
       - 8888:8080
@@ -133,7 +136,9 @@ services:
       - apiBaseUrl=http://backend-app:8080/
       - keycloakRealm=staffing-process-ui-realm
       - keycloakClientId=angular-app
-
+    networks:
+      - core-services      
+      
   backend-app:
     build:
       context: ./backend/

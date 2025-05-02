@@ -18,7 +18,7 @@ import { RouterModule } from "@angular/router";
         <div
           class="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2 text-xl font-bold text-black-600"
         >
-          <span>💼</span>
+          <span><img src="assets/logo.png" width="40" /></span>
           <span>{{ siteName }}</span>
         </div>
 
