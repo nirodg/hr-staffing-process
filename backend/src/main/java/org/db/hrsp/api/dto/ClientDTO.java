@@ -1,12 +1,11 @@
 package org.db.hrsp.api.dto;
 
-import org.db.hrsp.service.repository.model.StaffingProcess;
-
-import java.util.List;
-
-import org.db.hrsp.service.repository.model.util.AbstractEntity;
 import lombok.Getter;
 import lombok.Setter;
+import org.db.hrsp.service.repository.model.StaffingProcess;
+import org.db.hrsp.service.repository.model.util.AbstractEntity;
+
+import java.util.List;
 
 @Getter
 @Setter

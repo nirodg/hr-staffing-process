@@ -1,9 +1,12 @@
 package org.db.hrsp.service.repository.model;
 
-import org.db.hrsp.service.repository.model.util.AbstractEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 import lombok.*;
+import org.db.hrsp.service.repository.model.util.AbstractEntity;
 
 import java.util.List;
 

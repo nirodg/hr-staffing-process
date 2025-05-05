@@ -1,15 +1,15 @@
 package org.db.hrsp.api.config.security;
 
-import org.db.hrsp.kafka.model.KafkaPayload;
-import org.db.hrsp.kafka.producers.PersistEventProducer;
-import org.db.hrsp.service.repository.model.Role;
-import org.db.hrsp.service.repository.model.User;
-import org.db.hrsp.service.repository.UserRepository;
 import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.db.hrsp.kafka.model.KafkaPayload;
+import org.db.hrsp.kafka.producers.PersistEventProducer;
+import org.db.hrsp.service.repository.UserRepository;
+import org.db.hrsp.service.repository.model.Role;
+import org.db.hrsp.service.repository.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;

@@ -1,10 +1,11 @@
 package org.db.hrsp.service.repository.model;
 
-import org.db.hrsp.service.repository.model.util.AbstractEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
+import org.db.hrsp.service.repository.model.util.AbstractEntity;
 
 import java.util.List;
 

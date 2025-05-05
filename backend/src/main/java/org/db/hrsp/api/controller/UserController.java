@@ -1,10 +1,9 @@
 package org.db.hrsp.api.controller;
 
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.db.hrsp.common.LogMethodExecution;
-import org.db.hrsp.service.repository.model.User;
 import org.db.hrsp.service.repository.UserRepository;
+import org.db.hrsp.service.repository.model.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
