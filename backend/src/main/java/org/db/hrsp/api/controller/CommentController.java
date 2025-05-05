@@ -3,6 +3,7 @@ package org.db.hrsp.api.controller;
 import lombok.AllArgsConstructor;
 import org.db.hrsp.api.dto.CommentDTO;
 import org.db.hrsp.api.dto.mapper.CommentMapper;
+import org.db.hrsp.common.LogMethodExecution;
 import org.db.hrsp.service.repository.model.Comment;
 import org.db.hrsp.service.repository.CommentRepository;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/api/comments")
 @AllArgsConstructor
+@LogMethodExecution
 public class CommentController {
 
     private final CommentRepository service;

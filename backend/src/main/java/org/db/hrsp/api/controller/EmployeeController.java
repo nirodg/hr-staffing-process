@@ -4,6 +4,7 @@ package org.db.hrsp.api.controller;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.db.hrsp.api.dto.EmployeeDTO;
+import org.db.hrsp.common.LogMethodExecution;
 import org.db.hrsp.service.EmployeeService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/api/employees")
 @AllArgsConstructor
+@LogMethodExecution
 public class EmployeeController {
 
     private final EmployeeService service;

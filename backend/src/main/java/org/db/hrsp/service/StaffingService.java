@@ -6,6 +6,7 @@ import org.db.hrsp.api.config.ApiException;
 import org.db.hrsp.api.config.security.JwtInterceptor;
 import org.db.hrsp.api.dto.StaffingProcessDTO;
 import org.db.hrsp.api.dto.mapper.StaffingProcessMapper;
+import org.db.hrsp.common.LogMethodExecution;
 import org.db.hrsp.kafka.model.KafkaPayload;
 import org.db.hrsp.kafka.producers.PersistEventProducer;
 import org.db.hrsp.service.repository.ClientRepository;
@@ -24,6 +25,7 @@ import java.util.List;
 @Slf4j
 @Service
 @AllArgsConstructor
+@LogMethodExecution
 public class StaffingService {
 
     private final StaffingProcessRepository staffingProcessRepository;
@@ -83,7 +85,6 @@ public class StaffingService {
     }
 
     public List<StaffingProcessDTO> getAllStaffingProcesses() {
-        log.info("Get all Staffing Processes ");
         return staffingProcessMapper.toDtos(staffingProcessRepository.findAll());
     }
 

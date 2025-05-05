@@ -6,6 +6,7 @@ import org.db.hrsp.api.config.ApiException;
 import org.db.hrsp.api.config.security.JwtInterceptor;
 import org.db.hrsp.api.dto.ClientDTO;
 import org.db.hrsp.api.dto.mapper.ClientMapper;
+import org.db.hrsp.common.LogMethodExecution;
 import org.db.hrsp.kafka.model.KafkaPayload;
 import org.db.hrsp.kafka.producers.PersistEventProducer;
 import org.db.hrsp.service.repository.ClientRepository;
@@ -18,9 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
 @Service
 @AllArgsConstructor
+@LogMethodExecution
 public class ClientService {
     private final ClientRepository clientRepository;
     private final ClientMapper clientMapper;

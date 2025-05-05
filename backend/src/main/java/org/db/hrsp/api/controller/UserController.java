@@ -1,6 +1,8 @@
 package org.db.hrsp.api.controller;
 
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.db.hrsp.common.LogMethodExecution;
 import org.db.hrsp.service.repository.model.User;
 import org.db.hrsp.service.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/users")
-@RequiredArgsConstructor
+@AllArgsConstructor
+@LogMethodExecution
 public class UserController {
     private final UserRepository userRepository;
 

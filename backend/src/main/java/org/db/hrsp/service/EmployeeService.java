@@ -2,10 +2,12 @@ package org.db.hrsp.service;
 
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.db.hrsp.api.config.ApiException;
 import org.db.hrsp.api.config.security.JwtInterceptor;
 import org.db.hrsp.api.dto.EmployeeDTO;
 import org.db.hrsp.api.dto.mapper.EmployeeMapper;
+import org.db.hrsp.common.LogMethodExecution;
 import org.db.hrsp.kafka.model.KafkaPayload;
 import org.db.hrsp.kafka.producers.PersistEventProducer;
 import org.db.hrsp.service.repository.EmployeeRepository;
@@ -17,6 +19,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@LogMethodExecution
 public class EmployeeService {
 
     private final EmployeeRepository repository;

@@ -28,6 +28,7 @@ public class JwtClaimsConverter implements Converter<Jwt, AbstractAuthentication
         return jwt.getClaim(claimName);
     }
 
+    // Should we keep this?
     private Collection<GrantedAuthority> extractRealmRoles(Jwt jwt) {
         List<GrantedAuthority> authorities = new ArrayList<>();
 

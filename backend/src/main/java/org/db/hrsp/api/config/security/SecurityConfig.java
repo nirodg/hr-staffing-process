@@ -23,8 +23,8 @@ public class SecurityConfig {
 //    @Value("${spring.security.oauth2.admin.role}")
 //    private String ADMIN_ROLE;
 
-    private static final String ROLE_ADMIN = "ROLE_CLIENT_PUBLIC_ADMIN";
-    private static final String ROLE_USER = "ROLE_CLIENT_PUBLIC_USER";
+    private static final String ROLE_ADMIN = "CLIENT_PUBLIC_ADMIN";
+    private static final String ROLE_USER = "CLIENT_PUBLIC_USER";
 
     @Value("${spring.security.oauth2.client.provider.keycloak.issuer-uri}")
     private String issuerUri;
@@ -48,11 +48,12 @@ public class SecurityConfig {
                 });
 
         http.cors(corsCustomizer)
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/**").hasRole(ROLE_USER)
-//                        .requestMatchers("/api/admin/**").hasRole(ROLE_ADMIN)
-//                        .anyRequest().permitAll()
-//                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/**").hasAnyRole(ROLE_USER, ROLE_ADMIN)
+                        .requestMatchers("/api/admin/**").hasRole(ROLE_ADMIN)
+                        .requestMatchers("/ws/**").permitAll() // WebSocket endpoints
+                        .anyRequest().authenticated()// All other paths need auth
+                )
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
