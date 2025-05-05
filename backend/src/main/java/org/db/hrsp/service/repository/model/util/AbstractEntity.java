@@ -19,6 +19,9 @@ public abstract class AbstractEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Version
+    private Long version;
+
     @Column(name = "created_at", updatable = false)
     private Date createdAt;
 
