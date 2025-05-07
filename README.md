@@ -12,3 +12,7 @@ An Angular based front-end app with Spring boot designed for helping companies t
 9. Integrates Flyway DB migration
 10. Integrates MapStruct
 11. Integrates Lombok
+
+# How to start all services
+`docker-compose up -d --build` 
+- frontend is accessible via http://localhost:4200
