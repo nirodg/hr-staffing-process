@@ -20,9 +20,6 @@ import org.springframework.web.cors.CorsConfiguration;
 @EnableWebSecurity
 public class SecurityConfig {
 
-//    @Value("${spring.security.oauth2.admin.role}")
-//    private String ADMIN_ROLE;
-
     private static final String ROLE_ADMIN = "CLIENT_PUBLIC_ADMIN";
     private static final String ROLE_USER = "CLIENT_PUBLIC_USER";
 
@@ -49,7 +46,8 @@ public class SecurityConfig {
 
         http.cors(corsCustomizer)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**").hasAnyRole(ROLE_USER, ROLE_ADMIN)
+                		.requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/api/**").hasAnyRole(ROLE_USER, ROLE_ADMIN)
                         .requestMatchers("/api/admin/**").hasRole(ROLE_ADMIN)
                         .requestMatchers("/ws/**").permitAll() // WebSocket endpoints
                         .anyRequest().authenticated()// All other paths need auth

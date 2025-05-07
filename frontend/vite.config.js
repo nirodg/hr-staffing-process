@@ -4,4 +4,8 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
   ],
+  server: {
+    host: true,
+    allowedHosts: ['frontend-app', 'frontend.localhost']
+  },  
 })

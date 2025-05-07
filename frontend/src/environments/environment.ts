@@ -6,11 +6,12 @@ export const environment = {
   production: false,
   useMock: false,
   appName: "Staffing Process",
-  baseUrl: 'http://localhost:8080',
-  apiBaseUrl: 'http://localhost:8080/api',
-  keycloakUrl: 'http://localhost:8081',
+  baseUrl: 'http://localhost:8050',
+  apiBaseUrl: 'http://localhost:8050/api',
+  keycloakUrl: 'http://keycloak:8080',
   keycloakRealm: 'staffing-process-ui-realm',
   keycloakClientId: 'angular-app',
+  backendAppToken: ''
 };
 
 /*

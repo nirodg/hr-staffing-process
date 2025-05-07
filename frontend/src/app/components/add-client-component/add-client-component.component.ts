@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, inject } from "@angular/core";
 import {
   FormBuilder,
   FormGroup,
@@ -9,8 +9,8 @@ import { MatDialogRef } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
+import { MatSnackBar } from "@angular/material/snack-bar";
 import { CommonModule } from "@angular/common";
-
 import { ClientService } from "../../core/services/client.service";
 
 @Component({
@@ -26,19 +26,19 @@ import { ClientService } from "../../core/services/client.service";
       <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4">
         <mat-form-field appearance="fill" class="w-full">
           <mat-label>Client Name</mat-label>
-          <input matInput formControlName="clientName" required />
+          <input matInput formControlName="clientName" required [disabled]="isSaving"/>
         </mat-form-field>
 
         <!-- Client Email -->
         <mat-form-field appearance="fill" class="w-full">
           <mat-label>Company Email</mat-label>
-          <input matInput formControlName="clientEmail" type="email" required />
+          <input matInput formControlName="clientEmail" type="email" required [disabled]="isSaving"/>
         </mat-form-field>
 
         <!-- Contact Person Name -->
         <mat-form-field appearance="fill" class="w-full">
           <mat-label>Contact Name</mat-label>
-          <input matInput formControlName="contactPersonName" required />
+          <input matInput formControlName="contactPersonName" required [disabled]="isSaving"/>
         </mat-form-field>
 
         <!-- Contact Email -->
@@ -49,13 +49,14 @@ import { ClientService } from "../../core/services/client.service";
             formControlName="contactPersonEmail"
             type="email"
             required
+            [disabled]="isSaving"
           />
         </mat-form-field>
 
         <!-- Contact Phone -->
         <mat-form-field appearance="fill" class="w-full">
           <mat-label>Contact Phone</mat-label>
-          <input matInput formControlName="contactPersonPhone" type="tel" required/>
+          <input matInput formControlName="contactPersonPhone" type="tel" required [disabled]="isSaving"/>
         </mat-form-field>
 
         <div class="flex justify-end pt-2 gap-2">
@@ -66,9 +67,10 @@ import { ClientService } from "../../core/services/client.service";
             mat-raised-button
             color="primary"
             type="submit"
-            [disabled]="form.invalid"
+            [disabled]="form.invalid || isSaving"
           >
-            Save
+            <span *ngIf="isSaving">Saving...</span>
+            <span *ngIf="!isSaving">Save</span>            
           </button>
         </div>
       </form>
@@ -84,6 +86,9 @@ import { ClientService } from "../../core/services/client.service";
 })
 export class AddClientComponent {
   form: FormGroup;
+  isSaving = false;
+
+  private snackBar = inject(MatSnackBar);
 
   constructor(
     private fb: FormBuilder,
@@ -101,9 +106,25 @@ export class AddClientComponent {
 
   save(): void {
     if (this.form.invalid) return;
+    this.isSaving = true;
 
-    this.clientService.create(this.form.value).subscribe(() => {
-      this.dialogRef.close(true);
+    this.clientService.create(this.form.value).subscribe({
+      next: () => {
+        this.dialogRef.close(true);
+        this.isSaving = false;
+      },
+      error: (err) => {
+        this.isSaving = false
+        if (err.status === 409) {
+          this.snackBar.open(
+            'This item was modified by another user. Please reload and try again.',
+            'Close',
+            { duration: 5000 }
+          )
+        } else {
+          this.snackBar.open('An error occurred while saving.', 'Close', { duration: 5000 });
+        }
+      }
     });
   }
 }

@@ -1,47 +1,81 @@
 package org.db.hrsp.kafka;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.adapters.KeycloakDeploymentBuilder;
-import org.keycloak.adapters.rotation.AdapterTokenVerifier;
-import org.keycloak.adapters.springboot.KeycloakSpringBootProperties;
-import org.keycloak.common.VerificationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 
 @Slf4j
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class StompHandshakeInterceptor implements HandshakeInterceptor {
-    private final KeycloakSpringBootProperties configuration;
+
+    private String APP_TOKEN;
+
+    private JwtDecoder jwtDecoder;
 
     @Override
-    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
-        List<String> protocols = request.getHeaders().get("Sec-WebSocket-Protocol");
+    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
+                                   WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
+
+
         try {
-            String token = protocols.get(0).split(", ")[2];
-            log.debug("Token: " + token);
-            AdapterTokenVerifier.verifyToken(token, KeycloakDeploymentBuilder.build(configuration));
-            response.setStatusCode(HttpStatus.SWITCHING_PROTOCOLS);
-            log.debug("token valid");
-        } catch (IndexOutOfBoundsException e) {
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return false;
-        } catch (VerificationException e) {
+            // Extract tokens from both headers and query parameters
+            String appToken = extractParam(request, "X-APP-TOKEN");
+            String authToken = extractParam(request, "jwt");
+
+            if (appToken == null || !appToken.equals(APP_TOKEN)) {
+                response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                response.getHeaders().set("Connection", "close");
+                return false;
+            }
+
+            if (authToken == null) {
+                response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                response.getHeaders().set("Connection", "close");
+                return false;
+            }
+
+            Jwt jwt = jwtDecoder.decode(authToken);
+            attributes.put("jwt", jwt);
+            return true;
+
+        } catch (JwtException e) {
             response.setStatusCode(HttpStatus.FORBIDDEN);
-            log.error(e.getMessage());
+            response.getHeaders().set("Connection", "close");
             return false;
         }
-        return true;
     }
 
     @Override
     public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception exception) {
 
+    }
+
+
+    private String extractParam(ServerHttpRequest request, String tokenName) {
+        // Check headers first
+        String headerValue = request.getHeaders().getFirst(tokenName);
+        if (headerValue != null) return headerValue;
+
+        // Fallback to query parameters
+        String query = request.getURI().getQuery();
+        if (query != null) {
+            return Arrays.stream(query.split("&"))
+                    .map(param -> param.split("="))
+                    .filter(arr -> arr[0].equals(tokenName))
+                    .findFirst()
+                    .map(arr -> arr.length > 1 ? arr[1] : "")
+                    .orElse(null);
+        }
+        return null;
     }
 }

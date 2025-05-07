@@ -4,6 +4,26 @@ networks:
     
 services:
 
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d/:/etc/nginx/conf.d
+    networks:
+      - core-services
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - 9443:9443
+    volumes:
+      - ./portainer:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped      
+    networks:
+      - core-services       
   db:
     image: mysql:latest
     ports:
@@ -30,10 +50,11 @@ services:
       - --spi-theme-cache-templates=false
     environment:
       KC_DB: dev-file
+      KC_HOSTNAME: keycloak
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
-      - 8081:8080
+      - 8080:8080
     volumes:
       - ./docker/keycloak/realm-import.json:/opt/keycloak/data/import/realm-import.json
     healthcheck:
@@ -41,13 +62,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.services.rule=Host(`keycloak.localhost`)"  
     networks:
       - core-services
       
       ## ./kc.sh export --file realm.json --realm demo-realm
+      ## https://www.mastertheboss.com/keycloak/how-to-export-and-import-realms-in-keycloak/
       
   adminer:
     image: adminer
@@ -65,11 +84,6 @@ services:
       retries: 3
       start_period: 10s
       timeout: 5s
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.services.rule=Host(`adminer.localhost`)"
-      - "traefik.http.routers.services.entrypoints=web"     
-      - "--entryPoints.web.address=:8080"   
     networks:
       - core-services
       
@@ -121,10 +135,12 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      DYNAMIC_CONFIG_ENABLED: 'true'
+      DYNAMIC_CONFIG_ENABLED: 'true'  
+    networks:
+      - core-services   
 
   loki:
-    image: grafana/loki:2.9.0
+    image: grafana/loki:2.9.3
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
@@ -156,7 +172,7 @@ services:
         /run.sh
     image: grafana/grafana:latest
     ports:
-      - "3000:3000"
+      - "3000:3000"   
     networks:
       - core-services
 
@@ -170,19 +186,18 @@ services:
         condition: service_healthy
     environment:
       - keycloakUrl=http://keycloak:8080/
-      - apiBaseUrl=http://backend-app:8080/
+      - apiBaseUrl=http://api.localhost/
       - keycloakRealm=staffing-process-ui-realm
       - keycloakClientId=angular-app
+      - BACKEND_APP_TOKEN=dev-token
     networks:
       - core-services      
       
   backend-app:
-    build:
-      context: ./backend/
-      dockerfile: Dockerfile
+    build: ./backend/
     image: local/staffing
     ports:
-      - 8080:8080
+      - 8050:8080
       - 5005:5005
     depends_on:
       db:
@@ -194,18 +209,20 @@ services:
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=pass
       - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_ID=oauth2-staffing-process-client
-      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://host.docker.internal:8081/realms/staffing-process-ui-realm
       - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_AUTHORIZATION_GRANT_TYPE=client_credentials
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:8081/realms/staffing-process-ui-realm/protocol/openid-connect/certs
-      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI=http://localhost:8081/realms/staffing-process-ui-realm/protocol/openid-connect/token
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/staffing-process-ui-realm
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/staffing-process-ui-realm/protocol/openid-connect/certs
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI=http://keycloak:8080/realms/staffing-process-ui-realm/protocol/openid-connect/token
       - KEYCLOAK_PUBLIC_CLIENT=false
       - KEYCLOAK_ENABLE_CORS=true
       - KEYCLOAK_BEARER_ONLY=true
       - KEYCLOAK_SSL_REQUIRED=external
       - KEYCLOAK_USE_RESOURCE_ROLE_MAPPINGS=true
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=host.docker.internal:9092
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - LOKI_HOST=http://loki:3100
+      - APP_SECURITY_TOKEN=dev-token
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: "curl --fail --silent -H X-APP-TOKEN:$${APP_SECURITY_TOKEN} localhost:8080/actuator/health | grep UP || exit 1"
       interval: 10s
       timeout: 5s
       retries: 5

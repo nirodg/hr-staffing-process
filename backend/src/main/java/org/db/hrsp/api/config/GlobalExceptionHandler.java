@@ -3,11 +3,13 @@ package org.db.hrsp.api.config;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
@@ -65,5 +67,15 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ProblemDetail optimisticLockingFailure(OptimisticLockingFailureException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error");
+        pd.setType(URI.create("https://example.com/problem/unexpected-error"));
+        pd.setTitle("Internal error");
+        pd.setDetail("This record was modified by another user. Please refresh and try again.");
+        log.warn(ex.getMessage(), ex);
+        return pd;
+    }
 
 }

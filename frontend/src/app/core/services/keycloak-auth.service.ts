@@ -62,6 +62,10 @@ export class KeycloakAuthService {
     return !!this.keycloak.token;
   }
 
+  refreshToken(){
+    return this.keycloak.updateToken(70);
+  }
+
   startAutoTokenRefresh(intervalMs = 60000) {
     setInterval(() => {
       this.keycloak.updateToken(70).catch(() => {
