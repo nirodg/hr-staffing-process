@@ -1,0 +1,230 @@
+networks:
+  core-services:
+    driver: bridge
+    
+services:
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d/:/etc/nginx/conf.d
+    networks:
+      - core-services
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - 9443:9443
+    volumes:
+      - ./portainer:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped      
+    networks:
+      - core-services       
+  db:
+    image: mysql:latest
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: staffing_process
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - core-services
+      
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.1
+    command:
+      - start-dev
+      - --import-realm
+      - --features=scripts
+      - --spi-theme-static-max-age=-1
+      - --spi-theme-cache-themes=false
+      - --spi-theme-cache-templates=false
+    environment:
+      KC_DB: dev-file
+      KC_HOSTNAME: keycloak
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - 8080:8080
+    volumes:
+      - ./docker/keycloak/realm-import.json:/opt/keycloak/data/import/realm-import.json
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "exec 3<>/dev/tcp/localhost/8080" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - core-services
+      
+      ## ./kc.sh export --file realm.json --realm demo-realm
+      ## https://www.mastertheboss.com/keycloak/how-to-export-and-import-realms-in-keycloak/
+      
+  adminer:
+    image: adminer
+    ports:
+      - '8099:8080'
+    depends_on:
+      - db
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - '-f'
+        - 'http://localhost:8080'
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 5s
+    networks:
+      - core-services
+      
+  zookeeper:
+    image: 'confluentinc/cp-zookeeper:7.5.0'
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - '2181:2181'
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - core-services    
+      
+  kafka:
+    image: 'confluentinc/cp-kafka:7.5.0'
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT, OUTSIDE:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092, OUTSIDE://localhost:9093'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5    
+    networks:
+      - core-services    
+      
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8888:8080
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      DYNAMIC_CONFIG_ENABLED: 'true'  
+    networks:
+      - core-services   
+
+  loki:
+    image: grafana/loki:2.9.3
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - core-services   
+  grafana:
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+        EOF
+        /run.sh
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"   
+    networks:
+      - core-services
+
+  frontend-app:
+    build: ./frontend/
+    image: local/staffing-ui
+    ports:
+      - 4200:4200
+    depends_on:
+      backend-app:
+        condition: service_healthy
+    environment:
+      - keycloakUrl=http://keycloak:8080/
+      - apiBaseUrl=http://api.localhost/
+      - keycloakRealm=staffing-process-ui-realm
+      - keycloakClientId=angular-app
+      - BACKEND_APP_TOKEN=dev-token
+    networks:
+      - core-services      
+      
+  backend-app:
+    build: ./backend/
+    image: local/staffing
+    ports:
+      - 8050:8080
+      - 5005:5005
+    depends_on:
+      db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/staffing_process
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=pass
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_ID=oauth2-staffing-process-client
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_AUTHORIZATION_GRANT_TYPE=client_credentials
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/staffing-process-ui-realm
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/staffing-process-ui-realm/protocol/openid-connect/certs
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_TOKEN_URI=http://keycloak:8080/realms/staffing-process-ui-realm/protocol/openid-connect/token
+      - KEYCLOAK_PUBLIC_CLIENT=false
+      - KEYCLOAK_ENABLE_CORS=true
+      - KEYCLOAK_BEARER_ONLY=true
+      - KEYCLOAK_SSL_REQUIRED=external
+      - KEYCLOAK_USE_RESOURCE_ROLE_MAPPINGS=true
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - LOKI_HOST=http://loki:3100
+      - APP_SECURITY_TOKEN=dev-token
+    healthcheck:
+      test: "curl --fail --silent -H X-APP-TOKEN:$${APP_SECURITY_TOKEN} localhost:8080/actuator/health | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - core-services      

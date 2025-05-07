@@ -1,0 +1,11 @@
+{
+  "/kafka-rest": {
+    "target": "http://127.0.0.1:38082",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/kafka-rest": ""
+    }
+  }
+}

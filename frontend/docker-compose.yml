@@ -1,0 +1,7 @@
+services:
+  ui:
+    build: .
+    image: local/staffing-ui
+    container_name: frontend
+    ports:
+      - "4200:4200"

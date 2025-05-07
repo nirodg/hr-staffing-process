@@ -1,0 +1,5 @@
+{
+    "keycloakUrl": "http://auth.localhost/",
+    "apiBaseUrl": "http://api.localhost/",
+    "backendAppToken": "dev-token"
+}
