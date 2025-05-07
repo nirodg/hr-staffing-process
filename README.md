@@ -4,5 +4,11 @@ An Angular based front-end app with Spring boot designed for helping companies t
 
 # What does the backend comes with
 1. JWT Authentication
-2. Kafka & WebSocket integration
-3. API Error Handling RFC7807 
+2. Handling of X-APP-TOKEN and JWT token
+5. Handles TraceId and Loki
+6. Handles Kafka for async events
+7. Handles WebSocket for real-time updates
+8. API Error Handling RFC7807
+9. Integrates Flyway DB migration
+10. Integrates MapStruct
+11. Integrates Lombok
