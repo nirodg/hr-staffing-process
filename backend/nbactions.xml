@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>CUSTOM-Run APP</actionName>
+            <displayName>Run APP</displayName>
+            <goals>
+                <goal>org.springframework.boot:spring-boot-maven-plugin:3.4.4:run</goal>
+            </goals>
+            <properties>
+                <spring.datasource.password>pass</spring.datasource.password>
+                <spring.datasource.url>jdbc:mysql://localhost:3306/staffing_process</spring.datasource.url>
+                <spring.datasource.username>root</spring.datasource.username>
+            </properties>
+        </action>
+    </actions>

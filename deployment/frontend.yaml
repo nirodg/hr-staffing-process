@@ -1,0 +1,59 @@
+# ------- Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-app
+  template:
+    metadata:
+      labels:
+        app: frontend-app
+    spec:
+      containers:
+        - name: frontend-app
+          image: localhost:5000/staffing-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4200
+          env:
+            - name: KEYCLOAK_URL
+              value: "http://keycloak:3200/"
+            - name: API_BASE_URL
+              value: "http://backend-app"
+            - name: KEYCLOAK_REALM
+              value: staffing-process-ui-realm
+            - name: KEYCLOAK_CLIENT_ID
+              value: angular-app
+            - name: BACKEND_APP_TOKEN
+              value: dev-token
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4200
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 4200
+            initialDelaySeconds: 30
+            periodSeconds: 20
+---
+# ------- Exposing the service
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-app
+spec:
+  type: NodePort
+  selector:
+    app: frontend-app
+  ports:
+    - name: http
+      port: 4200
+      targetPort: 4200
+      nodePort: 32000

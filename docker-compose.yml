@@ -17,7 +17,7 @@ services:
   portainer:
     image: portainer/portainer-ce:latest
     ports:
-      - 9443:9443
+      - 9445:9443
     volumes:
       - ./portainer:/data
       - /var/run/docker.sock:/var/run/docker.sock
@@ -176,6 +176,17 @@ services:
     networks:
       - core-services
 
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"        # UI
+      - "4317:4317"          # OTLP gRPC
+      - "4318:4318"          # OTLP HTTP
+      - "6831:6831/udp"      # Thrift/UDP
+
   frontend-app:
     build: ./frontend/
     image: local/staffing-ui
@@ -219,6 +230,8 @@ services:
       - KEYCLOAK_SSL_REQUIRED=external
       - KEYCLOAK_USE_RESOURCE_ROLE_MAPPINGS=true
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - OTEL_SERVICE_NAME=backend-app
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317      
       - LOKI_HOST=http://loki:3100
       - APP_SECURITY_TOKEN=dev-token
     healthcheck:

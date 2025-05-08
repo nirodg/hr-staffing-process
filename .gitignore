@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
@@ -83,4 +82,6 @@ Thumbs.db
 *.mov
 *.wmv
 
->>>>>>> ceb71cccb0ad39fd97182317c1f48da83d1cacde
+
+
+portainer/

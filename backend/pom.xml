@@ -109,6 +109,11 @@
             <artifactId>flyway-mysql</artifactId>
             <version>${flyway.version}</version>
         </dependency>
+		<dependency>
+			<groupId>io.opentracing.contrib</groupId>
+			<artifactId>opentracing-spring-jaeger-cloud-starter</artifactId>
+			<version>3.1.2</version>
+		</dependency>
     </dependencies>
     <build>
         <plugins>
@@ -116,11 +121,11 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>org.flywaydb</groupId>-->
-<!--                <artifactId>flyway-maven-plugin</artifactId>-->
-<!--                <version>${flyway.version}</version>-->
-<!--            </plugin>-->
+			<!--            <plugin>-->
+			<!--                <groupId>org.flywaydb</groupId>-->
+			<!--                <artifactId>flyway-maven-plugin</artifactId>-->
+			<!--                <version>${flyway.version}</version>-->
+			<!--            </plugin>-->
         </plugins>
     </build>
 

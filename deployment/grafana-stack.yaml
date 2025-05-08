@@ -1,0 +1,102 @@
+########################################
+# LOKI
+########################################
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      containers:
+        - name: loki
+          image: grafana/loki:2.9.3
+          args:
+            - "-config.file=/etc/loki/local-config.yaml"
+          ports:
+            - containerPort: 3100
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+spec:
+  type: NodePort
+  selector:
+    app: loki
+  ports:
+    - name: http
+      port: 3100
+      targetPort: 3100
+      nodePort: 31100
+---
+########################################
+# GRAFANA
+########################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:latest
+          env:
+            - name: GF_PATHS_PROVISIONING
+              value: /etc/grafana/provisioning
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Admin
+          command:
+            - sh
+            - -euc
+            - |
+              mkdir -p /etc/grafana/provisioning/datasources
+              cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+              apiVersion: 1
+              datasources:
+                - name: Loki
+                  type: loki
+                  access: proxy
+                  orgId: 1
+                  url: http://loki:3100
+                  basicAuth: false
+                  isDefault: true
+                  version: 1
+                  editable: false
+              EOF
+              /run.sh
+          ports:
+            - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  type: NodePort
+  selector:
+    app: grafana
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      nodePort: 31000

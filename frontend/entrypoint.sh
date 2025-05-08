@@ -6,7 +6,9 @@ echo "Injecting runtime config..."
 
 cat <<EOF > $CONFIG_PATH
 {
-  "backendAppToken": "${BACKEND_APP_TOKEN:-dev-token}"
+  "backendAppToken": "${BACKEND_APP_TOKEN:-dev-token}",
+  "keycloakUrl" : "${KEYCLOAK_URL:-replace-me}",
+  "apiBaseUrl" : "${API_BASE_URL:-replace-me}"
 }
 EOF
 
