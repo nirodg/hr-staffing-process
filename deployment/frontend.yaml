@@ -56,4 +56,4 @@ spec:
     - name: http
       port: 4200
       targetPort: 4200
-      nodePort: 32000
+      # nodePort: 32000

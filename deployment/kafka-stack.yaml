@@ -101,7 +101,7 @@ kind: Service
 metadata:
   name: kafka
 spec:
-  type: NodePort
+  # type: NodePort
   selector:
     app: kafka
   ports:

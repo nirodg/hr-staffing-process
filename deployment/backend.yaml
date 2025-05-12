@@ -53,7 +53,11 @@ spec:
             - name: APP_SECURITY_TOKEN
               value: dev-token
             - name: SPRING_JPA_HIBERNATE_DDL_AUTO
-              value: "none"              
+              value: "none"          
+            # - name: OTEL_SERVICE_NAME
+            #   value: backend-app
+            # - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            #   value: http://jaeger:4317                  
           ports:
             - containerPort: 8080
             - containerPort: 5005
@@ -78,10 +82,10 @@ spec:
   ports:
     - port: 8080
       targetPort: 8080
-      nodePort: 32700
+      # nodePort: 32700
       name: http
     - port: 5005
       targetPort: 5005
-      nodePort: 32005
+      # nodePort: 32005
       name: debug
 ---

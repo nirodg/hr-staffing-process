@@ -40,14 +40,14 @@ kind: Service
 metadata:
   name: keycloak
 spec:
-  type: NodePort
+  # type: NodePort
   selector:
     app: keycloak
   ports:
     - name: http
       port: 8080
       targetPort: 8080
-      nodePort: 30098
+      # nodePort: 30098
 ---
 apiVersion: v1
 kind: ConfigMap

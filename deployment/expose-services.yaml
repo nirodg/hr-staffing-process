@@ -46,7 +46,7 @@ spec:
     - name: http
       port: 3000
       targetPort: 3000
-      nodePort: 30030
+      # nodePort: 30030
 
 ---
 apiVersion: v1

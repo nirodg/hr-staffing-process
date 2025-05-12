@@ -36,7 +36,7 @@ spec:
     - name: http
       port: 3100
       targetPort: 3100
-      nodePort: 31100
+      # nodePort: 31100
 ---
 ########################################
 # GRAFANA
@@ -99,4 +99,4 @@ spec:
     - name: http
       port: 3000
       targetPort: 3000
-      nodePort: 31000
+      # nodePort: 31000
