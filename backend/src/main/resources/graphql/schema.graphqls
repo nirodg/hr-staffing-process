@@ -1,0 +1,69 @@
+type Client {
+  id: ID!
+  clientName: String
+  clientEmail: String
+  contactPersonName: String
+  contactPersonEmail: String
+  contactPersonPhone: String
+  staffingProcesses: [StaffingProcess]
+}
+
+type Comment {
+  id: ID!
+  title: String
+  comment: String
+  staffingProcess: StaffingProcess
+  author: User
+  commentParent: ID
+}
+
+type Employee {
+  id: ID!
+  name: String
+  isAvailable: Boolean
+  staffingProcesses: [StaffingProcess]
+}
+
+type StaffingProcess {
+  id: ID!
+  title: String
+  client: Client
+  employee: User
+  comments: [Comment]
+  isActive: Boolean
+}
+
+type User {
+  id: ID!
+  username: String
+  firstName: String
+  lastName: String
+  email: String
+  position: String
+  available: Boolean
+}
+
+
+type Query {
+  getClients: [Client]
+  getClient(id: ID!): Client
+
+  getEmployees: [Employee]
+  getEmployee(id: ID!): Employee
+
+  getStaffingProcesses: [StaffingProcess]
+  getStaffingProcess(id: ID!): StaffingProcess
+
+  getComments: [Comment]
+  getComment(id: ID!): Comment
+
+  getUsers: [User]
+  getUser(id: ID!): User
+}
+
+type Mutation {
+  addClient(clientName: String!, clientEmail: String!): Client
+  addEmployee(name: String!): Employee
+  addComment(title: String!, comment: String!, staffingProcessId: ID!): Comment
+  addStaffingProcess(title: String!, clientId: ID!, employeeId: ID!): StaffingProcess
+}

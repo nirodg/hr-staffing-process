@@ -47,6 +47,8 @@ public class SecurityConfig {
         http.cors(corsCustomizer)
                 .authorizeHttpRequests(auth -> auth
                 		.requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/graphql/**").permitAll()
+                        .requestMatchers("/graphql").permitAll()
                         .requestMatchers("/api/**").hasAnyRole(ROLE_USER, ROLE_ADMIN)
                         .requestMatchers("/api/admin/**").hasRole(ROLE_ADMIN)
                         .requestMatchers("/ws/**").permitAll() // WebSocket endpoints

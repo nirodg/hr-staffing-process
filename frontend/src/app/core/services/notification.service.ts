@@ -96,8 +96,6 @@ export class NotificationService {
         const match = this.router.url.match(/staffing\/(\d+)\/comments/);
         const staffingId = match ? Number(match[1]) : null;
 
-        console.log(staffingId)
-
         if (staffingId === payload.entityId) {
           this.refreshService.refreshComments();
           this.displaySnack(snackMessage);

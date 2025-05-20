@@ -1,5 +1,6 @@
 package org.db.hrsp.services;
 
+import org.db.hrsp.api.config.RequestLoggingFilter;
 import org.db.hrsp.service.UserService;
 import org.db.hrsp.service.repository.model.User;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,9 @@ public class UserServiceTest {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    RequestLoggingFilter requestLoggingFilter;
 
     @Test
     void save_without_concurrency() {

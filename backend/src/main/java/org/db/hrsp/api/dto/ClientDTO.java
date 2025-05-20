@@ -1,7 +1,6 @@
 package org.db.hrsp.api.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.db.hrsp.service.repository.model.StaffingProcess;
 import org.db.hrsp.service.repository.model.util.AbstractEntity;
 
@@ -9,6 +8,9 @@ import java.util.List;
 
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ClientDTO extends AbstractEntity {
 
     private String clientName;

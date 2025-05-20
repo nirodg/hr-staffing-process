@@ -4,14 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.db.hrsp.service.repository.model.util.AbstractEntity;
-
 
 @Entity
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Comment  extends AbstractEntity {
 
     private String title;
@@ -26,6 +27,5 @@ public class Comment  extends AbstractEntity {
     public User author;
 
     private Long commentParent;
-
 
 }

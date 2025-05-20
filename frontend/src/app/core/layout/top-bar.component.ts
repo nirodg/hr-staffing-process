@@ -57,7 +57,6 @@ export class TopBarComponent {
   }
 
   logout(): void {
-    console.log("1");
     this.kc.logout();
   }
 }

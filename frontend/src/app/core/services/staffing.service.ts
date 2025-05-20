@@ -33,7 +33,6 @@ export class StaffingService {
 
   create(dto: Partial<StaffingProcessDTO>): Observable<StaffingProcessDTO> {
     if (environment.useMock) {
-      console.log("[MOCK] Creating staffing process:", dto);
       return of({
         ...dto,
         id: Date.now(),
