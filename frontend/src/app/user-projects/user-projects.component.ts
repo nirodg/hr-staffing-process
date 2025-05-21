@@ -6,6 +6,7 @@ import { KeycloakAuthService } from "../core/services/keycloak-auth.service";
 import { Apollo, gql } from "apollo-angular";
 import { CommonModule, Location } from "@angular/common";
 import { StaffingService } from "../core/services/staffing.service";
+import { data } from "cypress/types/jquery";
 
 @Component({
   selector: "app-user-projects",
@@ -15,9 +16,10 @@ import { StaffingService } from "../core/services/staffing.service";
   imports: [CommonModule, RouterLink],
 })
 export class UserProjectsComponent implements OnInit {
-  staffingProcesses: Observable<StaffingProcess[]>;
+  staffingProcesses: StaffingProcess[];
   page = 0;
   size = 10;
+  hasNextPage = false;
   requiredUsername!: string;
   @Input() username: string;
 
@@ -28,16 +30,22 @@ export class UserProjectsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.requiredUsername = this.username != "" ? this.username : this.auth.getUsername();
+    this.requiredUsername =
+      this.username != "" ? this.username : this.auth.getUsername();
     this.fetchProcesses();
   }
 
   fetchProcesses(): void {
-    this.staffingProcesses = this.staffingSerice.getStaffingProcessesByEmployee(
-      this.requiredUsername,
-      this.page,
-      this.size
-    );
+    this.staffingSerice
+      .getStaffingProcessesByEmployee(
+        this.requiredUsername,
+        this.page,
+        this.size
+      )
+      .subscribe((data) => {
+        this.staffingProcesses = data;
+        this.hasNextPage = data.length === this.size;
+      });
   }
 
   openProcess(id: string): void {

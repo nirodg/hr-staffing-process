@@ -4,6 +4,7 @@ import { Component, inject } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialog, MatDialogModule } from "@angular/material/dialog";
 import { MatTableModule } from "@angular/material/table";
+import { Router } from "@angular/router";
 import { ClientDTO } from "src/app/core/models/client-dto.model";
 import { ClientService } from "src/app/core/services/client.service";
 import { RefreshService } from "src/app/core/services/refresh.service";
@@ -51,7 +52,14 @@ import { FormDialogComponent } from "src/app/shared/form-dialog/form-dialog.comp
                   class="w-10 h-10 rounded-md object-cover"
                   alt="avatar"
                 />
-                <span class="font-medium">{{ client.clientName }}</span>
+                <span class="font-medium">
+                  <a
+                    (click)="openEmployeeProfile(client.id)"
+                    style="cursor: pointer"
+                    class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                    >{{ client.clientName }}</a
+                  >
+                </span>
               </td>
               <td class="px-4 py-3 text-sm text-gray-700">
                 {{ client.clientEmail }}
@@ -82,6 +90,7 @@ export class ClientsComponent {
   constructor(
     private dialog: MatDialog,
     private clientService: ClientService,
+    private router: Router,
     private refreshService: RefreshService
   ) {}
 
@@ -112,5 +121,8 @@ export class ClientsComponent {
         this.loadClients();
       }
     });
+  }
+  openEmployeeProfile(clientId: number) {
+    this.router.navigate(["/clients", clientId]);
   }
 }

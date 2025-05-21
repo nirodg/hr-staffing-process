@@ -10,7 +10,8 @@ import { EmployeeService } from "src/app/core/services/employee.service";
 import { UserFormComponent } from "src/app/shared/user-form/user-form.component";
 import { StatusBadgeComponent } from "../../shared/status-badge-component/status-badge-component.component";
 import { RefreshService } from "src/app/core/services/refresh.service";
-import {getRoleFromEnum} from "../../core/constants/role-map"
+import { getRoleFromEnum } from "../../core/constants/role-map";
+import { Router } from "@angular/router";
 
 @Component({
   selector: "app-employees",
@@ -56,7 +57,13 @@ import {getRoleFromEnum} from "../../core/constants/role-map"
                 />
                 <div>
                   <div class="font-semibold">
-                    {{ e.lastName }} {{ e.firstName }}
+                    <a
+                      (click)="openEmployeeProfile(e.username)"
+                      style="cursor: pointer"
+                      class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                    >
+                      {{ e.lastName }} {{ e.firstName }}</a
+                    >
                   </div>
                   <div class="text-xs text-blue-600">{{ e.role }}</div>
                 </div>
@@ -94,6 +101,7 @@ export class EmployeesComponent {
 
   constructor(
     private employeeService: EmployeeService,
+    private router: Router,
     private refreshService: RefreshService
   ) {}
 
@@ -113,5 +121,9 @@ export class EmployeesComponent {
 
   getRole(role: string): string {
     return getRoleFromEnum(role);
+  }
+
+  openEmployeeProfile(username: string) {
+    this.router.navigate(["/users", username]);
   }
 }

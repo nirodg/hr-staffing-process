@@ -18,11 +18,13 @@ import { StaffingService } from "src/app/core/services/staffing.service";
 })
 export class ClientDetailComponent implements OnInit {
   queryRef!: QueryRef<any>;
-  staffingProcesses!: Observable<ClientDTO[]>;
+  staffingProcesses!: ClientDTO[];
   clientId!: string;
   client: ClientDTO;
   page = 0;
   size = 10;
+  hasNextPage = false;
+
   constructor(
     private route: ActivatedRoute,
     private staffingService: StaffingService,
@@ -38,12 +40,12 @@ export class ClientDetailComponent implements OnInit {
     this.clientId = this.route.snapshot.paramMap.get("clientId");
     this.clientService.getById(this.clientId).subscribe((data) => {
       this.client = data;
-      this.staffingProcesses =
-        this.staffingService.getStaffingProcessesByClient(
-          this.clientId,
-          this.page,
-          this.size
-        );
+      this.staffingService
+        .getStaffingProcessesByClient(this.clientId, this.page, this.size)
+        .subscribe((data) => {
+          this.staffingProcesses = data
+          this.hasNextPage = data.length === this.size;
+        });
     });
   }
 
@@ -52,7 +54,7 @@ export class ClientDetailComponent implements OnInit {
   }
 
   openEmployeeProfile(username: string): void {
-    this.router.navigate(["/users", username,]);
+    this.router.navigate(["/users", username]);
   }
 
   nextPage() {

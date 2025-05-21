@@ -11,7 +11,7 @@
     </thead>
     <tbody class="text-sm font-normal">
       <tr
-        *ngFor="let p of staffingProcesses | async"
+        *ngFor="let p of staffingProcesses"
         class="hover:bg-gray-100 border-b"
       >
         <td class="px-4 py-3">
@@ -58,8 +58,9 @@
     <button
       class="flex items-center justify-center px-3 h-8 text-sm font-medium text-white bg-gray-800 border-0 border-s border-gray-700 rounded-e hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
       (click)="nextPage()"
+      [disabled]="!hasNextPage"
     >
-      Next
+      Next →
     </button>
   </div>
 </div>
