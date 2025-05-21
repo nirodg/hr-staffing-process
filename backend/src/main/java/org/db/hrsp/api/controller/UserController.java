@@ -8,12 +8,10 @@ import org.db.hrsp.service.repository.model.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -32,6 +30,11 @@ public class UserController {
     @GetMapping("/my_account")
     public User getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
         return service.getByJwt(jwt);
+    }
+
+    @GetMapping("/{username}/account")
+    public Optional<User> getById(@PathVariable("username") String username) {
+        return service.findByUsername(username);
     }
 
     @DeleteMapping("/my_account")

@@ -107,7 +107,10 @@ export class StaffingService {
               createdAt
               isActive
               employee {
+                id
                 username
+                firstName
+                lastName
                 email
               }
             }

@@ -10,13 +10,14 @@ import {
   MatDialogModule,
   MAT_DIALOG_DATA,
 } from "@angular/material/dialog";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 
 import { UserService } from "../../core/services/user.service";
 import { EmployeeService } from "../../core/services/employee.service";
 import { UserDTO } from "../../core/models/user-dto.model";
-import { Location } from '@angular/common';
+import { Location } from "@angular/common";
 import { UserProjectsComponent } from "src/app/user-projects/user-projects.component";
+import { Observable } from "rxjs";
 
 @Component({
   selector: "app-user-form",
@@ -35,12 +36,12 @@ import { UserProjectsComponent } from "src/app/user-projects/user-projects.compo
       *ngIf="form"
       class="max-w-2xl mx-auto mt-6 bg-white shadow rounded-xl p-6 space-y-6"
     >
-    <button
-            class="px-4 py-2 text-sm rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
-            (click)="goBack()"
-          >
-            ← Go Back
-          </button>
+      <button
+        class="px-4 py-2 text-sm rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
+        (click)="goBack()"
+      >
+        ← Go Back
+      </button>
       <h2 class="text-xl font-semibold text-gray-800 dark:text-black">
         {{ title }}
       </h2>
@@ -80,9 +81,8 @@ import { UserProjectsComponent } from "src/app/user-projects/user-projects.compo
         <button mat-button color="warn" type="button" (click)="delete()">Delete Profile</button> -->
         </div>
       </form>
-      
 
-      <app-user-projects></app-user-projects>
+      <app-user-projects [username]="username"></app-user-projects>
     </div>
   `,
 })
@@ -90,12 +90,15 @@ export class UserFormComponent implements OnInit {
   @Input() mode: "profile" | "create" = "profile";
   form!: FormGroup;
   title = "";
+  username: string = "";
+  user: UserDTO;
 
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
     private employeeService: EmployeeService,
     private router: Router,
+    private route: ActivatedRoute,
     private location: Location,
     @Optional() private dialogRef?: MatDialogRef<UserFormComponent>,
     @Optional()
@@ -105,13 +108,27 @@ export class UserFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.mode = this.data?.mode ?? "profile";
-    this.title =
-      this.mode === "profile" ? "Your Profile" : "Add a New Employee";
 
-    if (this.mode === "profile") {
-      this.userService.getMyProfile().subscribe((user) => this.buildForm(user));
+    this.username = this.route.snapshot.paramMap.get("username");
+
+    console.log(this.username)
+    if (this.username) {
+      this.userService.getByUsername(this.username).subscribe((data) => {
+        this.user = data;
+        this.buildForm(this.user)
+        this.title = `${this.user.firstName}'s profile`
+      });
     } else {
-      this.buildForm(); // empty form for creation
+      this.title =
+        this.mode === "profile" ? "Your Profile" : "Add a New Employee";
+
+      if (this.mode === "profile") {
+        this.userService
+          .getMyProfile()
+          .subscribe((user) => this.buildForm(user));
+      } else {
+        this.buildForm(); // empty form for creation
+      }
     }
   }
 
@@ -120,11 +137,19 @@ export class UserFormComponent implements OnInit {
       username: [
         { value: user?.username ?? "", disabled: this.mode === "profile" },
       ],
-      firstName: [{ value: user?.firstName ?? "", disabled: this.mode === "profile" }],
-      lastName: [{ value: user?.lastName ?? "", disabled: this.mode === "profile" }],
+      firstName: [
+        { value: user?.firstName ?? "", disabled: this.mode === "profile" },
+      ],
+      lastName: [
+        { value: user?.lastName ?? "", disabled: this.mode === "profile" },
+      ],
       email: [{ value: user?.email ?? "", disabled: this.mode === "profile" }],
-      position: [{ value: user?.position ?? "", disabled: this.mode === "profile" }],
-      available: [{value: user?.available ?? "", disabled: this.mode === "profile"}],
+      position: [
+        { value: user?.position ?? "", disabled: this.mode === "profile" },
+      ],
+      available: [
+        { value: user?.available ?? "", disabled: this.mode === "profile" },
+      ],
     });
   }
 

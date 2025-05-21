@@ -14,7 +14,7 @@ import { CommentDTO } from "src/app/core/models/comment-dto.model";
 import { StaffingService } from "src/app/core/services/staffing.service";
 import { RefreshService } from "src/app/core/services/refresh.service";
 import { KeycloakAuthService } from "src/app/core/services/keycloak-auth.service";
-import { Location } from '@angular/common';
+import { Location } from "@angular/common";
 
 @Component({
   selector: "app-comments-view",
@@ -48,10 +48,28 @@ import { Location } from '@angular/common';
         class="col-span-2 bg-gray-100 rounded-xl shadow p-6 font-jakarta text-gray-800"
       >
         <p class="text-sm text-gray-600">
-          Client: <span class="font-medium">{{ client }}</span>
+          Client:
+          <span class="font-medium">
+            <a
+              (click)="openClient(clientId)"
+              class="text-blue-600"
+              style="cursor: pointer"
+            >
+              {{ client }}
+            </a>
+          </span>
         </p>
         <p class="text-sm text-gray-600">
-          Employee: <span class="font-medium">{{ employee }}</span>
+          Employee:
+          <span class="font-medium">
+            <a
+              (click)="openEmployeeProfile(employeeUsername)"
+              class="text-blue-600"
+              style="cursor: pointer"
+            >
+              {{ employee }}
+            </a></span
+          >
         </p>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-1 gap-1 p-1 font-jakarta">
@@ -147,7 +165,9 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
   staffingId: number = 0;
   client = "";
   employee = "";
+  employeeUsername = ""
   title = "";
+  clientId: number;
   isActive: boolean = true;
   allComments: any[] = [];
   comments: any[] = [];
@@ -166,7 +186,7 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
     private commentsService: CommentService,
     private staffingService: StaffingService,
     private refreshService: RefreshService,
-    private auth : KeycloakAuthService,
+    private auth: KeycloakAuthService,
     private location: Location
   ) {}
 
@@ -181,15 +201,16 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
     this.refreshService.staffing$.subscribe(() => {
       this.loadData(this.staffingId);
     });
-
   }
 
   loadData(staffingId: number): void {
     this.staffingService.getById(staffingId).subscribe((data) => {
       this.title = data.title;
       this.client = data.client.clientName;
+      this.clientId = data.client.id;
       this.isActive = data.active;
       this.employee = `${data.employee.lastName} ${data.employee.firstName}`;
+      this.employeeUsername = data.employee.username
       this.comments = this.buildCommentTree(data.comments);
     });
   }
@@ -287,7 +308,15 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
     });
   }
 
-  isAdmin(): boolean{
+  isAdmin(): boolean {
     return this.auth.isAdmin();
+  }
+
+  openClient(id: number) {
+    this.router.navigate(["/clients", id]);
+  }
+
+  openEmployeeProfile(username: string): void {
+    this.router.navigate(["/users", username]);
   }
 }

@@ -51,6 +51,10 @@ export class ClientDetailComponent implements OnInit {
     this.router.navigate(["/staffing", id, "comments"]);
   }
 
+  openEmployeeProfile(username: string): void {
+    this.router.navigate(["/users", username,]);
+  }
+
   nextPage() {
     this.page++;
     this.fetchProcesses();
@@ -60,7 +64,7 @@ export class ClientDetailComponent implements OnInit {
     if (this.page > 0) this.page--;
     this.fetchProcesses();
   }
-    goBack() {
+  goBack() {
     this.location.back();
   }
 }

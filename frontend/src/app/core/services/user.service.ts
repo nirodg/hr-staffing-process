@@ -14,6 +14,11 @@ export class UserService {
     return this.http.get<UserDTO>(`${this.baseUrl}/my_account`);
   }
 
+  getByUsername(username: String): Observable<UserDTO> {
+    return this.http.get<UserDTO>(`${this.baseUrl}/${username}/account`);
+  }
+
+
   updateMyProfile(profile: Partial<UserDTO>): Observable<UserDTO> {
     return this.http.put<UserDTO>(`${this.baseUrl}/me`, profile);
   }

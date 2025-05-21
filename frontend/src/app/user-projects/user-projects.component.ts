@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, Input, OnInit } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
 import { Observable, map } from "rxjs";
 import { StaffingProcess } from "../core/models/staffing-process.model";
@@ -18,7 +18,8 @@ export class UserProjectsComponent implements OnInit {
   staffingProcesses: Observable<StaffingProcess[]>;
   page = 0;
   size = 10;
-  username!: string;
+  requiredUsername!: string;
+  @Input() username: string;
 
   constructor(
     private auth: KeycloakAuthService,
@@ -27,14 +28,13 @@ export class UserProjectsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    console.log("Fetching projects");
-    this.username = this.auth.getUsername();
+    this.requiredUsername = this.username != "" ? this.username : this.auth.getUsername();
     this.fetchProcesses();
   }
 
   fetchProcesses(): void {
     this.staffingProcesses = this.staffingSerice.getStaffingProcessesByEmployee(
-      this.username,
+      this.requiredUsername,
       this.page,
       this.size
     );
