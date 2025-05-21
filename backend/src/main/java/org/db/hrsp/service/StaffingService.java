@@ -133,4 +133,9 @@ public class StaffingService {
         Optional<User> user = userRepository.findByUsername(username);
         return user.map(value -> staffingProcessRepository.findByEmployeeId(value.getId(), pageable).stream().map(staffingProcessMapper::toDto).toList()).orElse(null);
     }
+
+    public List<StaffingProcessDTO> findByClientId(Long clientId, Pageable pageable) {
+        List<StaffingProcess> list = staffingProcessRepository.findByClientId(clientId, pageable);
+        return list.stream().map(staffingProcessMapper::toDto).toList();
+    }
 }

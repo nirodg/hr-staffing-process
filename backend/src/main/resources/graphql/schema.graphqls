@@ -71,6 +71,8 @@ type Query {
   getUser(id: ID!): User
 
   staffingProcessesByEmployee(username: String!, page: Int, size: Int): [StaffingProcess]
+  staffingProcessesByClient(clientId: Int!, page: Int, size: Int): [StaffingProcess]
+
 }
 
 type Mutation {

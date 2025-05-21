@@ -1,10 +1,10 @@
 import { Component, OnInit } from "@angular/core";
-import { Router } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { Observable, map } from "rxjs";
 import { StaffingProcess } from "../core/models/staffing-process.model";
 import { KeycloakAuthService } from "../core/services/keycloak-auth.service";
 import { Apollo, gql } from "apollo-angular";
-import { CommonModule } from "@angular/common";
+import { CommonModule, Location } from "@angular/common";
 import { StaffingService } from "../core/services/staffing.service";
 
 @Component({
@@ -12,7 +12,7 @@ import { StaffingService } from "../core/services/staffing.service";
   standalone: true,
   templateUrl: "./user-projects.component.html",
   styleUrl: "./user-projects.component.css",
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
 })
 export class UserProjectsComponent implements OnInit {
   staffingProcesses: Observable<StaffingProcess[]>;
@@ -33,7 +33,11 @@ export class UserProjectsComponent implements OnInit {
   }
 
   fetchProcesses(): void {
-    this.staffingProcesses = this.staffingSerice.getStaffingProcessesByEmployee(this.username, this.page, this.size);
+    this.staffingProcesses = this.staffingSerice.getStaffingProcessesByEmployee(
+      this.username,
+      this.page,
+      this.size
+    );
   }
 
   openProcess(id: string): void {

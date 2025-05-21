@@ -5,6 +5,7 @@ import { environment } from "src/environments/environment";
 import { StaffingProcess } from "../models/staffing-process.model";
 import { StaffingProcessDTO } from "../models/staffing-process-dto.model";
 import { Apollo, gql } from "apollo-angular";
+import { ClientDTO } from "../models/client-dto.model";
 
 @Injectable({ providedIn: "root" })
 export class StaffingService {
@@ -78,6 +79,7 @@ export class StaffingService {
                   createdAt
                   isActive
                   client {
+                    id
                     clientName
                   }
                 }
@@ -92,4 +94,33 @@ export class StaffingService {
           })
           .valueChanges.pipe(map((r) => r.data.staffingProcessesByEmployee));
   }
+
+  
+  getStaffingProcessesByClient(clientId: any, page: any, size: any): Observable<import("../models/client-dto.model").ClientDTO[]> {
+    return this.gql
+      .watchQuery<{ staffingProcessesByClient: ClientDTO[] }>({
+        query: gql`
+          query ($id: Int!, $page: Int, $size: Int) {
+            staffingProcessesByClient(clientId: $id, page: $page, size: $size) {
+              id
+              title
+              createdAt
+              isActive
+              employee {
+                username
+                email
+              }
+            }
+          }
+        `,
+        variables: {
+          id: parseInt(clientId),
+          page: page,
+          size: size
+        },
+        fetchPolicy: "cache-and-network",
+      })
+      .valueChanges.pipe(map((r) => r.data.staffingProcessesByClient));
+  }
+  
 }

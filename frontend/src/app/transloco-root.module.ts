@@ -25,6 +25,7 @@ import { ProfileComponent } from './shared/user-form/user-form.component';
 import { AddStaffingProcessComponentComponent } from './components/add-staffing-process-component/add-staffing-process-component.component';
 import { AddClientComponentComponent } from './components/add-client-component/add-client-component.component';
 import { UserProjectsComponent } from './user-projects/user-projects.component';
+import { ClientDetailComponent } from './views/client-detail/client-detail.component';
 
 @Injectable({ providedIn: 'root' })
 export class TranslocoHttpLoader implements TranslocoLoader {
@@ -65,7 +66,8 @@ export class TranslocoHttpLoader implements TranslocoLoader {
     ProfileComponent,
     AddStaffingProcessComponentComponent,
     AddClientComponentComponent,
-    UserProjectsComponent
+    UserProjectsComponent,
+    ClientDetailComponent
   ],
 })
 export class TranslocoRootModule {}

@@ -48,4 +48,12 @@ public class StaffingProcessGraphQLController {
         Pageable pageable = PageRequest.of(page.orElse(0), size.orElse(10));
         return staffingProcessService.findByEmployeeId(username, pageable);
     }
+
+    @QueryMapping
+    public List<StaffingProcessDTO> staffingProcessesByClient(@Argument Long clientId,
+                                                              @Argument Optional<Integer> page,
+                                                              @Argument Optional<Integer> size) {
+        Pageable pageable = PageRequest.of(page.orElse(0), size.orElse(10));
+        return staffingProcessService.findByClientId(clientId, pageable);
+    }
 }

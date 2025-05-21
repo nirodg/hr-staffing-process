@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
-import { Observable, of } from 'rxjs';
-import { ClientDTO } from '../models/client-dto.model';
+import { Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { environment } from "../../../environments/environment";
+import { Observable, of } from "rxjs";
+import { ClientDTO } from "../models/client-dto.model";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class ClientService {
   private baseUrl = `${environment.apiBaseUrl}/clients`;
 
@@ -12,7 +12,7 @@ export class ClientService {
 
   getAll(): Observable<ClientDTO[]> {
     return environment.useMock
-      ? this.http.get<ClientDTO[]>('/assets/mock/clients.json')
+      ? this.http.get<ClientDTO[]>("/assets/mock/clients.json")
       : this.http.get<ClientDTO[]>(this.baseUrl);
   }
 
@@ -26,5 +26,9 @@ export class ClientService {
     return environment.useMock
       ? of(void 0)
       : this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  getById(clientId: string): Observable<ClientDTO> {
+    return this.http.get<ClientDTO>(`${this.baseUrl}/${clientId}`);
   }
 }
