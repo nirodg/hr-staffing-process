@@ -90,10 +90,26 @@ import { Location } from "@angular/common";
               <div
                 class="flex items-center justify-between text-sm text-gray-600"
               >
-                <span class="font-medium"
-                  >{{ comment.author?.firstName }}
-                  {{ comment.author?.lastName }}</span
+                <span
+                  class="font-medium"
+                  *ngIf="comment.author?.username != loggedUsername"
                 >
+                  <a
+                    (click)="openEmployeeProfile(comment.author?.username)"
+                    style="cursor: pointer"
+                    class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                  >
+                    {{ comment.author?.firstName }}
+                    {{ comment.author?.lastName }}</a
+                  >
+                </span>
+                <span
+                  class="font-medium"
+                  *ngIf="comment.author?.username == loggedUsername"
+                >
+                  {{ comment.author?.firstName }}
+                  {{ comment.author?.lastName }}
+                </span>
                 <span>{{ comment.createdAt | date: "medium" }}</span>
               </div>
               <p class="text-gray-800">{{ comment.comment }}</p>
@@ -165,7 +181,7 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
   staffingId: number = 0;
   client = "";
   employee = "";
-  employeeUsername = ""
+  employeeUsername = "";
   title = "";
   clientId: number;
   isActive: boolean = true;
@@ -175,6 +191,7 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
   replyInputs: Record<number, string> = {};
   newComment: string = "";
   visibleReplyBox: number | null = null;
+  loggedUsername: string = "";
 
   dataSource: CommentDTO[] = [];
 
@@ -191,6 +208,7 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+    this.loggedUsername = this.auth.getUsername();
     this.staffingId = +this.route.snapshot.params["id"];
     this.loadData(this.staffingId);
 
@@ -210,7 +228,7 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
       this.clientId = data.client.id;
       this.isActive = data.active;
       this.employee = `${data.employee.lastName} ${data.employee.firstName}`;
-      this.employeeUsername = data.employee.username
+      this.employeeUsername = data.employee.username;
       this.comments = this.buildCommentTree(data.comments);
     });
   }
