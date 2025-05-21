@@ -3,8 +3,7 @@ package org.db.hrsp.service.repository.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.db.hrsp.service.repository.model.util.AbstractEntity;
 
 import java.util.List;

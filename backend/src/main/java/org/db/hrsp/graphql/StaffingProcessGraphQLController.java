@@ -5,12 +5,15 @@ import lombok.RequiredArgsConstructor;
 import org.db.hrsp.api.dto.StaffingProcessDTO;
 import org.db.hrsp.api.dto.mapper.StaffingProcessMapper;
 import org.db.hrsp.service.StaffingService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
@@ -36,5 +39,13 @@ public class StaffingProcessGraphQLController {
             @Argument Long employeeId
     ) {
         return staffingProcessService.createStaffingProcess(clientId, employeeId, title);
+    }
+
+    @QueryMapping
+    public List<StaffingProcessDTO> staffingProcessesByEmployee(@Argument String username,
+                                                                @Argument Optional<Integer> page,
+                                                                @Argument Optional<Integer> size) {
+        Pageable pageable = PageRequest.of(page.orElse(0), size.orElse(10));
+        return staffingProcessService.findByEmployeeId(username, pageable);
     }
 }

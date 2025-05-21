@@ -18,9 +18,11 @@ import org.db.hrsp.service.repository.model.Client;
 import org.db.hrsp.service.repository.model.StaffingProcess;
 import org.db.hrsp.service.repository.model.User;
 import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -127,4 +129,8 @@ public class StaffingService {
         }
     }
 
+    public List<StaffingProcessDTO> findByEmployeeId(String username, Pageable pageable) {
+        Optional<User> user = userRepository.findByUsername(username);
+        return user.map(value -> staffingProcessRepository.findByEmployeeId(value.getId(), pageable).stream().map(staffingProcessMapper::toDto).toList()).orElse(null);
+    }
 }

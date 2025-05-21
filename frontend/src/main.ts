@@ -1,4 +1,4 @@
-import { enableProdMode, importProvidersFrom } from '@angular/core';
+import { enableProdMode, importProvidersFrom, inject } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
@@ -7,6 +7,9 @@ import { routes } from './app/app.routes';
 import { environment } from './environments/environment';
 import { provideKeycloak } from 'keycloak-angular';
 import { AuthInterceptor } from './app/core/interceptors/auth.interceptor';
+import { provideApollo } from 'apollo-angular';
+import { HttpLink } from 'apollo-angular/http';
+import { InMemoryCache } from '@apollo/client/core';
 
 if (environment.production) {
   enableProdMode();
@@ -41,7 +44,16 @@ fetch('/assets/config.json')
           checkLoginIframe: false,  // disable 3p-cookie iframe checks
           silentCheckSsoRedirectUri: window.location.origin + '/assets/silent-check-sso.html'
         } as any ,
-      })
+      }), provideHttpClient(), provideApollo(() => {
+      const httpLink = inject(HttpLink);
+
+      return {
+        link: httpLink.create({
+          uri: 'http://localhost:8050/graphql',
+        }),
+        cache: new InMemoryCache(),
+      };
+    })
     ]
   });
 

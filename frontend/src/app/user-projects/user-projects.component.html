@@ -1,0 +1,52 @@
+<h3>My assigments</h3>
+<div class="overflow-x-auto">
+  <table class="w-full table-auto border-collapse">
+    <thead class="bg-gray-50 border-b text-sm font-semibold text-gray-600">
+      <tr>
+        <th class="px-4 py-3 text-left">Project Name</th>
+        <th class="px-4 py-3 text-left">Client Name</th>
+        <th class="px-4 py-3 text-left">Status</th>
+        <th class="px-4 py-3 text-left">Created On</th>
+      </tr>
+    </thead>
+    <tbody class="text-sm font-normal">
+      <tr
+        *ngFor="let p of staffingProcesses | async"
+        class="hover:bg-gray-100 border-b"
+      >
+        <td class="px-4 py-3">
+          <a (click)="openProcess(p.id)" style="cursor: pointer"  class="font-medium text-blue-600 dark:text-blue-500 hover:underline">{{
+            p.title
+          }}</a>
+        </td>
+        <td class="px-4 py-3">{{ p.client?.clientName }}</td>
+        <td class="px-4 py-3">{{ p.isActive ? "Active" : "Inactive" }}</td>
+        <td class="px-4 py-3">{{ p.createdAt }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="flex flex-col items-center">
+  <!-- Help text -->
+  <span class="text-sm text-gray-700 dark:text-gray-400">
+    Page
+    <span class="font-semibold text-gray-900 dark:text-gray-400">{{ page + 1 }} </span>
+  </span>
+  <!-- Buttons -->
+  <div class="inline-flex mt-2 xs:mt-0">
+    <button
+      class="flex items-center justify-center px-3 h-8 text-sm font-medium text-white bg-gray-800 rounded-s hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+      (click)="prevPage()"
+      [disabled]="page === 0"
+    >
+      Prev
+    </button>
+    <button
+      class="flex items-center justify-center px-3 h-8 text-sm font-medium text-white bg-gray-800 border-0 border-s border-gray-700 rounded-e hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+      (click)="nextPage()"
+    >
+      Next
+    </button>
+  </div>
+</div>

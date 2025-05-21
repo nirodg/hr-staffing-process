@@ -35,13 +35,12 @@ public class ClientGraphQLController {
             @Argument String contactPersonEmail,
             @Argument String contactPersonPhone
     ) {
-        ClientDTO dto = ClientDTO.builder()
-                .clientName(clientName)
-                .clientEmail(clientEmail)
-                .contactPersonName(contactPersonName)
-                .contactPersonEmail(contactPersonEmail)
-                .contactPersonPhone(contactPersonPhone)
-                .build();
+        ClientDTO dto = new ClientDTO();
+        dto.setClientName(clientName);
+        dto.setClientEmail(clientEmail);
+        dto.setContactPersonName(contactPersonName);
+        dto.setContactPersonEmail(contactPersonEmail);
+        dto.setContactPersonPhone(contactPersonPhone);
 
         return clientService.createClient(dto);
     }

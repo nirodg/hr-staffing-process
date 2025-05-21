@@ -16,6 +16,7 @@ import { UserService } from "../../core/services/user.service";
 import { EmployeeService } from "../../core/services/employee.service";
 import { UserDTO } from "../../core/models/user-dto.model";
 import { Location } from '@angular/common';
+import { UserProjectsComponent } from "src/app/user-projects/user-projects.component";
 
 @Component({
   selector: "app-user-form",
@@ -27,6 +28,7 @@ import { Location } from '@angular/common';
     MatInputModule,
     MatCheckboxModule,
     MatButtonModule,
+    UserProjectsComponent,
   ],
   template: `
     <div
@@ -78,6 +80,9 @@ import { Location } from '@angular/common';
         <button mat-button color="warn" type="button" (click)="delete()">Delete Profile</button> -->
         </div>
       </form>
+      
+
+      <app-user-projects></app-user-projects>
     </div>
   `,
 })

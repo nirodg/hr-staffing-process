@@ -4,12 +4,16 @@ import { map, Observable, of } from "rxjs";
 import { environment } from "src/environments/environment";
 import { StaffingProcess } from "../models/staffing-process.model";
 import { StaffingProcessDTO } from "../models/staffing-process-dto.model";
+import { Apollo, gql } from "apollo-angular";
 
 @Injectable({ providedIn: "root" })
 export class StaffingService {
   private baseUrl = `${environment.apiBaseUrl}/staffing-processes`;
-  
-  constructor(private http: HttpClient) {}
+
+  constructor(
+    private http: HttpClient,
+    private gql: Apollo
+  ) {}
 
   getAll(): Observable<StaffingProcessDTO[]> {
     if (environment.useMock) {
@@ -59,5 +63,33 @@ export class StaffingService {
     } else {
       return this.http.delete<void>(`${this.baseUrl}/${id}`);
     }
+  }
+
+  getStaffingProcessesByEmployee(
+    username: string, page: number, size: number
+  ): Observable<StaffingProcess[]> {
+    return this.gql
+          .watchQuery<{ staffingProcessesByEmployee: StaffingProcess[] }>({
+            query: gql`
+              query GetStaffingProcesses($username: String!, $page: Int, $size: Int) {
+                staffingProcessesByEmployee(username: $username, page: $page, size: $size) {
+                  id
+                  title
+                  createdAt
+                  isActive
+                  client {
+                    clientName
+                  }
+                }
+              }
+            `,
+            variables: {
+              username: username,
+              page: page,
+              size: size,
+            },
+            fetchPolicy: "cache-and-network",
+          })
+          .valueChanges.pipe(map((r) => r.data.staffingProcessesByEmployee));
   }
 }

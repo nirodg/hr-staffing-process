@@ -6,6 +6,8 @@ type Client {
   contactPersonEmail: String
   contactPersonPhone: String
   staffingProcesses: [StaffingProcess]
+  createdAt: String
+  updatedAt: String
 }
 
 type Comment {
@@ -15,6 +17,8 @@ type Comment {
   staffingProcess: StaffingProcess
   author: User
   commentParent: ID
+  createdAt: String
+  updatedAt: String
 }
 
 type Employee {
@@ -22,6 +26,8 @@ type Employee {
   name: String
   isAvailable: Boolean
   staffingProcesses: [StaffingProcess]
+  createdAt: String
+  updatedAt: String
 }
 
 type StaffingProcess {
@@ -31,6 +37,8 @@ type StaffingProcess {
   employee: User
   comments: [Comment]
   isActive: Boolean
+  createdAt: String
+  updatedAt: String
 }
 
 type User {
@@ -41,6 +49,8 @@ type User {
   email: String
   position: String
   available: Boolean
+  createdAt: String
+  updatedAt: String
 }
 
 
@@ -59,6 +69,8 @@ type Query {
 
   getUsers: [User]
   getUser(id: ID!): User
+
+  staffingProcessesByEmployee(username: String!, page: Int, size: Int): [StaffingProcess]
 }
 
 type Mutation {

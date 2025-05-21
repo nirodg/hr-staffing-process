@@ -1,8 +1,7 @@
 package org.db.hrsp.service.repository.model.util;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 
