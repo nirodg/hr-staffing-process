@@ -49,7 +49,7 @@ fetch('/assets/config.json')
 
       return {
         link: httpLink.create({
-          uri: 'http://localhost:8050/graphql',
+          uri: `${environment.baseUrl}/graphql`,
         }),
         cache: new InMemoryCache(),
       };
