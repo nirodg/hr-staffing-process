@@ -138,4 +138,13 @@ public class StaffingService {
         List<StaffingProcess> list = staffingProcessRepository.findByClientId(clientId, pageable);
         return list.stream().map(staffingProcessMapper::toDto).toList();
     }
+
+    @Transactional
+    public StaffingProcessDTO updateTitle(Long processId, String newTitle) {
+        StaffingProcess process = staffingProcessRepository.findById(processId)
+                .orElseThrow(() -> new NotFoundException("Process not found"));
+        process.setTitle(newTitle);
+        return staffingProcessMapper.toDto(staffingProcessRepository.save(process));
+    }
+
 }

@@ -1,6 +1,8 @@
 package org.db.hrsp.service;
 
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.db.hrsp.api.common.ConflictException;
 import org.db.hrsp.api.common.NotFoundException;
@@ -15,6 +17,7 @@ import org.db.hrsp.kafka.producers.PersistEventProducer;
 import org.db.hrsp.service.repository.ClientRepository;
 import org.db.hrsp.service.repository.model.Client;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -25,46 +28,28 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-@AllArgsConstructor
 @LogMethodExecution
-public class ClientService {
+@RequiredArgsConstructor
+public class ClientService extends AbstractService<Client, ClientDTO, ClientRepository, ClientMapper> {
+
     private final ClientRepository clientRepository;
-    private final ClientMapper clientMapper;
 
     private final PersistEventProducer eventProducer;
     private final JwtInterceptor jwtInterceptor;
 
-    @Transactional
-    public ClientDTO createClient(ClientDTO dto) {
+    @Override
+    public ClientDTO create(ClientDTO dto) {
 
         // optimistic Java-side uniqueness check
         if (clientRepository.existsByClientNameIgnoreCase(dto.getClientName())) {
             throw new ConflictException("Client '%s' already exists".formatted(dto.getClientName()));
         }
+        ClientDTO responseDto = super.create(dto);
 
-        Client entity;
-        try {
-            entity = clientRepository.save(clientMapper.toEntity(dto));
-        } catch (DataIntegrityViolationException dup) {
-            throw new ConflictException("Client '%s' already exists".formatted(dto.getClientName()));
-        } catch (RuntimeException ex) {
-            throw new UnexpectedException("Error saving client");
-        }
+        publishEvent(responseDto.getId(), KafkaPayload.Action.CREATE);
+        log.info("Client created: {}", responseDto.getId());
 
-        publishEvent(entity.getId(), KafkaPayload.Action.CREATE);
-        log.info("Client created: {}", entity.getId());
-        return clientMapper.toDto(entity);
-    }
-
-    public ClientDTO getClient(Long id) {
-        Client c = clientRepository.findById(id)
-                .orElseThrow(() ->
-                        new NotFoundException("Client %d not found".formatted(id)));
-        return clientMapper.toDto(c);
-    }
-
-    public List<ClientDTO> getAllClients() {
-        return clientMapper.toDtos(clientRepository.findAll());
+        return responseDto;
     }
 
     /* ───────────────────────────  HELPERS  ───────────────────────── */

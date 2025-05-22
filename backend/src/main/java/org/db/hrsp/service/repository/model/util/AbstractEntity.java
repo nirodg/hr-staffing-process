@@ -8,7 +8,7 @@ import java.util.Date;
 @MappedSuperclass
 @Getter
 @Setter
-public abstract class AbstractEntity {
+public class AbstractEntity {
     /**
      * The unique identifier for the entity.
      * This field is automatically generated.

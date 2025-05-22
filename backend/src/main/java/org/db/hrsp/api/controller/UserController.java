@@ -1,11 +1,11 @@
 package org.db.hrsp.api.controller;
 
 import lombok.AllArgsConstructor;
+import org.db.hrsp.api.dto.UserDTO;
 import org.db.hrsp.common.LogMethodExecution;
 import org.db.hrsp.service.UserService;
 import org.db.hrsp.service.repository.UserRepository;
 import org.db.hrsp.service.repository.model.User;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -23,8 +23,8 @@ public class UserController {
     private final UserService service;
 
     @GetMapping()
-    public List<User> getAllUsers() {
-        return service.findAll();
+    public List<UserDTO> getAllUsers() {
+        return service.getAll();
     }
 
     @GetMapping("/my_account")

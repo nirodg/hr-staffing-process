@@ -21,17 +21,11 @@ public class UserGraphQLController {
 
     @QueryMapping
     public List<UserDTO> getUsers() {
-        return userService.findAll().stream()
-                .map(userMapper::toDto)
-                .toList();
+        return userService.getAll();
     }
 
     @QueryMapping
-    public UserDTO getUser(@Argument Long id) {
-        return userService.findAll().stream()
-                .filter(u -> u.getId().equals(id))
-                .findFirst()
-                .map(userMapper::toDto)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public UserDTO getUser(@Argument Long id) throws Throwable {
+        return userService.getById(id);
     }
 }

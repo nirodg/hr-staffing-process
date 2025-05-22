@@ -54,7 +54,6 @@ public class CommentService {
                 .author(user)
                 .build();
 
-
         try {
             comment = commentRepository.save(comment);
         } catch (DataIntegrityViolationException dup) {   // unlikely but safe

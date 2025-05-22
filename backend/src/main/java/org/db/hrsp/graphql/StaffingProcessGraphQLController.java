@@ -56,4 +56,9 @@ public class StaffingProcessGraphQLController {
         Pageable pageable = PageRequest.of(page.orElse(0), size.orElse(10));
         return staffingProcessService.findByClientId(clientId, pageable);
     }
+
+    @MutationMapping
+    public StaffingProcessDTO updateProcessTitle(@Argument Long id, @Argument String newTitle) {
+        return staffingProcessService.updateTitle(id, newTitle);
+    }
 }

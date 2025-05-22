@@ -2,6 +2,8 @@ package org.db.hrsp.api.dto;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -15,4 +17,5 @@ public class UserDTO extends AbstractEntityDto {
     private String email;
     private String position;
     private boolean available;
+    private List<RoleDto> roles;
 }

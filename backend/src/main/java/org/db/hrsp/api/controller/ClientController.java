@@ -26,17 +26,17 @@ public class ClientController {
 
     @PostMapping()
     public ClientDTO addClient(@RequestBody ClientDTO client) {
-        return clientService.createClient(client);
+        return clientService.create(client);
     }
 
     @GetMapping("/{clientId}")
-    public ClientDTO getClient(@PathVariable("clientId") Long clientId) {
-        return clientService.getClient(clientId);
+    public ClientDTO getClient(@PathVariable("clientId") Long clientId) throws Throwable {
+        return clientService.getById(clientId);
     }
 
     @GetMapping()
     public List<ClientDTO> getAllClients() {
-        return clientService.getAllClients();
+        return clientService.getAll();
     }
 
 }

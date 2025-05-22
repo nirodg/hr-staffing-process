@@ -19,12 +19,12 @@ public class ClientGraphQLController {
 
     @QueryMapping
     public List<ClientDTO> getClients() {
-        return clientService.getAllClients();
+        return clientService.getAll();
     }
 
     @QueryMapping
-    public ClientDTO getClient(@Argument Long id) {
-        return clientService.getClient(id);
+    public ClientDTO getClient(@Argument Long id) throws Throwable {
+        return clientService.getById(id);
     }
 
     @MutationMapping
@@ -42,6 +42,6 @@ public class ClientGraphQLController {
         dto.setContactPersonEmail(contactPersonEmail);
         dto.setContactPersonPhone(contactPersonPhone);
 
-        return clientService.createClient(dto);
+        return clientService.create(dto);
     }
 }

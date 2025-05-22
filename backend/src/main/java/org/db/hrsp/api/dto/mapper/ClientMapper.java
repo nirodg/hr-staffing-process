@@ -7,9 +7,6 @@ import org.mapstruct.Mapper;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
-public interface ClientMapper {
-    Client toEntity(ClientDTO dto);
-    ClientDTO toDto(Client entity);
-
-    List<ClientDTO> toDtos(Iterable<Client> clients);
+public abstract class ClientMapper extends AbstractMapper<Client, ClientDTO>{
+    public abstract List<ClientDTO> toDtos(Iterable<Client> clients);
 }

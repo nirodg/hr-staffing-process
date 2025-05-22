@@ -17,6 +17,8 @@ import java.util.List;
 public class Employee extends AbstractEntity {
 
     private String name;
+
+    @Builder.Default
     private boolean isAvailable = true;
 
     @OneToMany
