@@ -27,7 +27,38 @@ import { Location } from "@angular/common";
     >
       <!-- 🔘 Top Buttons -->
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold">{{ title }}</h2>
+        <!-- <h2 class="text-lg font-semibold">{{ title }}</h2> -->
+        <div class="mb-2">
+          <span *ngIf="!editingTitle" class="text-xl font-semibold">
+            {{ title }}
+            <button
+              *ngIf="isAdmin() && isActive"
+              (click)="editingTitle = true"
+              class="ml-2 text-sm text-blue-600 hover:underline"
+            >
+              Edit
+            </button>
+          </span>
+
+          <div *ngIf="editingTitle" class="flex items-center gap-2">
+            <input
+              [(ngModel)]="titleEdit"
+              class="border px-2 py-1 rounded text-sm w-64"
+            />
+            <button
+              (click)="saveTitle()"
+              class="text-sm bg-blue-600 text-white px-2 py-1 rounded"
+            >
+              Save
+            </button>
+            <button
+              (click)="cancelTitleEdit()"
+              class="text-sm text-gray-500 hover:underline"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
         <div class="flex gap-2">
           <button
             class="px-4 py-2 text-sm rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
@@ -135,7 +166,10 @@ import { Location } from "@angular/common";
               </button>
 
               <!--  Conditional Reply Input -->
-              <div *ngIf="visibleReplyBox === comment.id && isActive" class="mt-2 ml-2">
+              <div
+                *ngIf="visibleReplyBox === comment.id && isActive"
+                class="mt-2 ml-2"
+              >
                 <textarea
                   [(ngModel)]="replyInputs[comment.id]"
                   rows="2"
@@ -212,6 +246,9 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
   systemComment: CommentDTO | null = null;
 
   dataSource: CommentDTO[] = [];
+
+  editingTitle = false;
+  titleEdit = "";
 
   @ViewChild("anchor", { static: false }) anchor!: ElementRef;
 
@@ -362,5 +399,20 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
 
   openEmployeeProfile(username: string): void {
     this.router.navigate(["/users", username]);
+  }
+
+  saveTitle(): void {
+    if (!this.titleEdit.trim()) return;
+
+    this.staffingService
+      .updateTitle(this.staffingId, this.titleEdit)
+      .subscribe(() => {
+        this.title = this.titleEdit;
+        this.editingTitle = false;
+      });
+  }
+  cancelTitleEdit(): void {
+    this.titleEdit = this.title;
+    this.editingTitle = false;
   }
 }

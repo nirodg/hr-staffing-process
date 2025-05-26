@@ -80,4 +80,5 @@ type Mutation {
   addEmployee(name: String!): Employee
   addComment(title: String!, comment: String!, staffingProcessId: ID!): Comment
   addStaffingProcess(title: String!, clientId: ID!, employeeId: ID!): StaffingProcess
+  updateProcessTitle(id: Int!, newTitle: String!): StaffingProcess
 }

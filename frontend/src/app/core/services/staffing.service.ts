@@ -67,36 +67,49 @@ export class StaffingService {
   }
 
   getStaffingProcessesByEmployee(
-    username: string, page: number, size: number
+    username: string,
+    page: number,
+    size: number
   ): Observable<StaffingProcess[]> {
     return this.gql
-          .watchQuery<{ staffingProcessesByEmployee: StaffingProcess[] }>({
-            query: gql`
-              query GetStaffingProcesses($username: String!, $page: Int, $size: Int) {
-                staffingProcessesByEmployee(username: $username, page: $page, size: $size) {
-                  id
-                  title
-                  createdAt
-                  isActive
-                  client {
-                    id
-                    clientName
-                  }
-                }
+      .watchQuery<{ staffingProcessesByEmployee: StaffingProcess[] }>({
+        query: gql`
+          query GetStaffingProcesses(
+            $username: String!
+            $page: Int
+            $size: Int
+          ) {
+            staffingProcessesByEmployee(
+              username: $username
+              page: $page
+              size: $size
+            ) {
+              id
+              title
+              createdAt
+              isActive
+              client {
+                id
+                clientName
               }
-            `,
-            variables: {
-              username: username,
-              page: page,
-              size: size,
-            },
-            fetchPolicy: "cache-and-network",
-          })
-          .valueChanges.pipe(map((r) => r.data.staffingProcessesByEmployee));
+            }
+          }
+        `,
+        variables: {
+          username: username,
+          page: page,
+          size: size,
+        },
+        fetchPolicy: "cache-and-network",
+      })
+      .valueChanges.pipe(map((r) => r.data.staffingProcessesByEmployee));
   }
 
-  
-  getStaffingProcessesByClient(clientId: any, page: any, size: any): Observable<import("../models/client-dto.model").ClientDTO[]> {
+  getStaffingProcessesByClient(
+    clientId: any,
+    page: any,
+    size: any
+  ): Observable<import("../models/client-dto.model").ClientDTO[]> {
     return this.gql
       .watchQuery<{ staffingProcessesByClient: ClientDTO[] }>({
         query: gql`
@@ -119,11 +132,24 @@ export class StaffingService {
         variables: {
           id: parseInt(clientId),
           page: page,
-          size: size
+          size: size,
         },
         fetchPolicy: "cache-and-network",
       })
       .valueChanges.pipe(map((r) => r.data.staffingProcessesByClient));
   }
-  
+
+  updateTitle(id: number, newTitle: string) {
+    return this.gql.mutate({
+      mutation: gql`
+        mutation updateProcessTitle($id: Int!, $newTitle: String!) {
+          updateProcessTitle(id: $id, newTitle: $newTitle) {
+            id
+            title
+          }
+        }
+      `,
+      variables: { id, newTitle },
+    });
+  }
 }
