@@ -79,6 +79,17 @@ import { Location } from "@angular/common";
         <div
           class="col-span-3 bg-white shadow-md rounded-xl p-1 max-h-[80vh] overflow-y-auto space-y-1"
         >
+          <!-- Show banner if the process is marked as completed -->
+
+          <!-- System comment at the top -->
+          <div
+            *ngIf="systemComment"
+            class="bg-red-50 border-l-4 border-red-600 text-red-800 p-4 mb-4"
+          >
+            <strong>{{ systemComment.title }}</strong>
+            <p>{{ systemComment.comment }}</p>
+          </div>
+
           <ng-container *ngFor="let comment of comments">
             <ng-container
               *ngTemplateOutlet="commentBlock; context: { $implicit: comment }"
@@ -116,7 +127,7 @@ import { Location } from "@angular/common";
 
               <!--  Reply Toggle Button -->
               <button
-                *ngIf="visibleReplyBox !== comment.id"
+                *ngIf="visibleReplyBox !== comment.id && isActive"
                 class="text-blue-500 text-sm mt-2"
                 (click)="visibleReplyBox = comment.id"
               >
@@ -124,7 +135,7 @@ import { Location } from "@angular/common";
               </button>
 
               <!--  Conditional Reply Input -->
-              <div *ngIf="visibleReplyBox === comment.id" class="mt-2 ml-2">
+              <div *ngIf="visibleReplyBox === comment.id && isActive" class="mt-2 ml-2">
                 <textarea
                   [(ngModel)]="replyInputs[comment.id]"
                   rows="2"
@@ -157,12 +168,18 @@ import { Location } from "@angular/common";
           </ng-template>
 
           <!--  New Root-Level Comment -->
-          <div class="mb-6">
+          <div class="mb-6" *ngIf="isActive">
             <textarea
               [(ngModel)]="newComment"
               rows="3"
               class="w-full border border-gray-300 rounded-lg p-3 text-sm resize-none"
-              placeholder="Write a new comment..."
+              placeholder=""
+              [disabled]="!isActive"
+              [placeholder]="
+                isActive
+                  ? 'Write a new comment...'
+                  : 'Project is completed, comments are disabled'
+              "
             ></textarea>
             <button
               (click)="addComment()"
@@ -192,6 +209,7 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
   newComment: string = "";
   visibleReplyBox: number | null = null;
   loggedUsername: string = "";
+  systemComment: CommentDTO | null = null;
 
   dataSource: CommentDTO[] = [];
 
@@ -230,6 +248,14 @@ export class CommentsViewComponent implements OnInit, AfterViewInit {
       this.employee = `${data.employee.lastName} ${data.employee.firstName}`;
       this.employeeUsername = data.employee.username;
       this.comments = this.buildCommentTree(data.comments);
+      // Look for the system-generated "completed" comment
+      this.systemComment = data.comments.find(
+        (c) =>
+          c.title?.toLowerCase() === "process completed" &&
+          c.comment
+            ?.toLowerCase()
+            .includes("has marked the process as completed")
+      );
     });
   }
 

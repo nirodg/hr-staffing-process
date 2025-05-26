@@ -44,4 +44,10 @@ public class ClientGraphQLController {
 
         return clientService.create(dto);
     }
+
+    @MutationMapping
+    public ClientDTO updateClient(@Argument Long id, @Argument ClientDTO input) throws Throwable {
+        return clientService.update(id, input);
+    }
+
 }

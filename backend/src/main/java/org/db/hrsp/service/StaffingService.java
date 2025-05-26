@@ -12,9 +12,11 @@ import org.db.hrsp.common.LogMethodExecution;
 import org.db.hrsp.kafka.model.KafkaPayload;
 import org.db.hrsp.kafka.producers.PersistEventProducer;
 import org.db.hrsp.service.repository.ClientRepository;
+import org.db.hrsp.service.repository.CommentRepository;
 import org.db.hrsp.service.repository.StaffingProcessRepository;
 import org.db.hrsp.service.repository.UserRepository;
 import org.db.hrsp.service.repository.model.Client;
+import org.db.hrsp.service.repository.model.Comment;
 import org.db.hrsp.service.repository.model.StaffingProcess;
 import org.db.hrsp.service.repository.model.User;
 import org.springframework.data.crossstore.ChangeSetPersister;
@@ -34,6 +36,7 @@ public class StaffingService {
     private final ClientRepository clientRepository;
     private final UserRepository userRepository;
     private final StaffingProcessMapper staffingProcessMapper;
+    private final CommentRepository commentRepository;
 
     private final PersistEventProducer eventProducer;
     private final JwtInterceptor jwtInterceptor;
@@ -97,6 +100,19 @@ public class StaffingService {
         StaffingProcess process = staffingProcessRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Staffing process %d not found".formatted(id)));
         process.setActive(false);
+
+        User user = jwtInterceptor.getCurrentUser();
+
+
+        // Add system comment
+        Comment systemComment = Comment.builder()
+                .title("Process completed")
+                .comment("User %s-%s has marked the process as completed.".formatted(user.getFirstName(), user.getLastName()))
+                .author(jwtInterceptor.getCurrentUser())
+                .staffingProcess(process)
+                .build();
+
+        commentRepository.save(systemComment);
         staffingProcessRepository.save(process);
 
         publish(KafkaPayload.Action.UPDATE);
