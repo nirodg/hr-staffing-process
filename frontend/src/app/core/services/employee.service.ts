@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable, of } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { UserDTO } from '../models/user-dto.model';
+import { Apollo, gql } from 'apollo-angular';
 
 @Injectable({ providedIn: 'root' })
 export class EmployeeService {
   private baseUrl = `${environment.apiBaseUrl}/users`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private apollo: Apollo) {}
 
   getAll(): Observable<UserDTO[]> {
     return environment.useMock
@@ -26,5 +27,25 @@ export class EmployeeService {
     return environment.useMock
       ? of(void 0)
       : this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+   updateEmployee(id: number, input: Partial<UserDTO>): Observable<UserDTO> {
+    return this.apollo
+      .mutate<{ updateUserInfo: UserDTO }>({
+        mutation: gql`
+          mutation UpdateUserInfo($id: Int!, $input: UserDTOInput!) {
+            updateUserInfo(id: $id, input: $input) {
+              id
+              email
+              roles
+              position
+              firstName
+              lastName
+              available
+            }
+          }
+        `,
+        variables: { id, input }
+      })
+      .pipe(map(result => result.data!.updateUserInfo));
   }
 }

@@ -12,6 +12,9 @@ import { StatusBadgeComponent } from "../../shared/status-badge-component/status
 import { RefreshService } from "src/app/core/services/refresh.service";
 import { getRoleFromEnum } from "../../core/constants/role-map";
 import { Router } from "@angular/router";
+import { User } from "src/stories/user";
+import { EditEmployeeDialogComponent } from "src/app/shared/edit-employee-dialog/edit-employee-dialog.component";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
   selector: "app-employees",
@@ -45,6 +48,7 @@ import { Router } from "@angular/router";
               <th class="px-4 py-3 text-left">Role</th>
               <th class="px-4 py-3 text-left">Position</th>
               <th class="px-4 py-3 text-left">Status</th>
+              <th class="px-4 py-3 text-left">Actions</th>
             </tr>
           </thead>
           <tbody class="text-sm font-normal">
@@ -70,6 +74,7 @@ import { Router } from "@angular/router";
               </td>
               <td class="px-4 py-3">{{ e.email }}</td>
               <td class="px-4 py-3">{{ this.getRole(e.roles) }}</td>
+
               <td class="px-4 py-3">{{ e.position }}</td>
               <td class="px-4 py-3">
                 <div class="flex items-center">
@@ -83,6 +88,9 @@ import { Router } from "@angular/router";
 
                   {{ e.available === true ? "Active" : "Disabled" }}
                 </div>
+              </td>
+              <td class="px-4 py-3">
+                <button mat-button (click)="openEditDialog(e)">✏️ Edit</button>
               </td>
             </tr>
           </tbody>
@@ -102,7 +110,9 @@ export class EmployeesComponent {
   constructor(
     private employeeService: EmployeeService,
     private router: Router,
-    private refreshService: RefreshService
+    private refreshService: RefreshService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit() {
@@ -125,5 +135,24 @@ export class EmployeesComponent {
 
   openEmployeeProfile(username: string) {
     this.router.navigate(["/users", username]);
+  }
+
+  openEditDialog(employee: UserDTO): void {
+
+this.dialog.open(EditEmployeeDialogComponent, {
+  width: '600px',
+  data: employee
+}).afterClosed().subscribe(result => {
+  if (result) {
+    this.employeeService.updateEmployee(employee.id, result).subscribe(() => {
+      this.snackBar.open('Employee updated ✅', 'Close', {
+        duration: 3000,
+        panelClass: ['bg-green-600', 'text-white']
+      });
+      this.loadData()
+    });
+  }
+});
+
   }
 }

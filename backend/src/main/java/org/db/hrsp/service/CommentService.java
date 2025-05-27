@@ -28,7 +28,6 @@ import java.util.List;
 
 @Slf4j
 @Service
-@AllArgsConstructor
 @LogMethodExecution
 public class CommentService {
 
@@ -37,6 +36,14 @@ public class CommentService {
     private final CommentMapper commentMapper;
     private final JwtInterceptor jwtInterceptor;
     private final PersistEventProducer eventProducer;
+
+    public CommentService(CommentRepository commentRepository, StaffingProcessRepository staffingProcessRepository, CommentMapper commentMapper, JwtInterceptor jwtInterceptor, PersistEventProducer eventProducer) {
+        this.commentRepository = commentRepository;
+        this.staffingProcessRepository = staffingProcessRepository;
+        this.commentMapper = commentMapper;
+        this.jwtInterceptor = jwtInterceptor;
+        this.eventProducer = eventProducer;
+    }
 
     @Transactional
     public CommentDTO addComment(Long staffingId, CommentDTO dto) throws UnexpectedException {

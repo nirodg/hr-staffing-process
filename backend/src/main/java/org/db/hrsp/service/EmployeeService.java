@@ -28,7 +28,7 @@ import static org.keycloak.util.JsonSerialization.mapper;
 @Service
 @AllArgsConstructor
 @LogMethodExecution
-public class EmployeeService {
+public class EmployeeService extends AbstractService<Employee, EmployeeDTO, EmployeeRepository, EmployeeMapper> {
 
     private final EmployeeRepository repository;
     private final EmployeeMapper employeeMapper;

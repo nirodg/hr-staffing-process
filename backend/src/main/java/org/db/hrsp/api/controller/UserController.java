@@ -15,12 +15,17 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
-@AllArgsConstructor
+//@AllArgsConstructor
 @LogMethodExecution
 public class UserController {
 
     private final UserRepository userRepository;
     private final UserService service;
+
+    public UserController(UserRepository userRepository, UserService service) {
+        this.userRepository = userRepository;
+        this.service = service;
+    }
 
     @GetMapping()
     public List<UserDTO> getAllUsers() {

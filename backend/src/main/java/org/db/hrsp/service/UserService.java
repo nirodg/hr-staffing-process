@@ -8,11 +8,11 @@ import org.db.hrsp.api.dto.UserDTO;
 import org.db.hrsp.api.dto.mapper.UserMapper;
 import org.db.hrsp.common.LogMethodExecution;
 import org.db.hrsp.service.repository.UserRepository;
+import org.db.hrsp.service.repository.model.Role;
 import org.db.hrsp.service.repository.model.User;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -56,4 +56,7 @@ public class UserService extends AbstractService<User, UserDTO, UserRepository, 
         });
     }
 
+    public long countByRole(String role) {
+        return repository.countByRoles(Role.valueOf(role));
+    }
 }

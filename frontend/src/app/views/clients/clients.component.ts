@@ -8,7 +8,10 @@ import { Router } from "@angular/router";
 import { ClientDTO } from "src/app/core/models/client-dto.model";
 import { ClientService } from "src/app/core/services/client.service";
 import { RefreshService } from "src/app/core/services/refresh.service";
+import { StaffingService } from "src/app/core/services/staffing.service";
 import { FormDialogComponent } from "src/app/shared/form-dialog/form-dialog.component";
+import { EditClientDialogComponent } from "src/app/shared/edit-clien-dialog/edit-client-dialog.component";
+import { KeycloakAuthService } from "src/app/core/services/keycloak-auth.service";
 
 @Component({
   selector: "app-client",
@@ -39,6 +42,7 @@ import { FormDialogComponent } from "src/app/shared/form-dialog/form-dialog.comp
               <th class="px-4 py-3 text-left">Client</th>
               <th class="px-4 py-3 text-left">Email</th>
               <th class="px-4 py-3 text-left">Contact Person</th>
+              <th class="px-4 py-3 text-left">Actions</th>
             </tr>
           </thead>
           <tbody class="text-sm font-normal">
@@ -73,6 +77,15 @@ import { FormDialogComponent } from "src/app/shared/form-dialog/form-dialog.comp
                   {{ client.contactPersonPhone }}
                 </div>
               </td>
+              <td>
+                <button
+                  *ngIf="isAdmin()"
+                  (click)="openClientEdit(client)"
+                  class="ml-2 text-sm text-blue-600 hover:underline"
+                >
+                   ✏️ Edit Client Info
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -87,11 +100,22 @@ export class ClientsComponent {
   clients: ClientDTO[] = [];
   defaultAvatar = "https://placehold.co/40x40";
 
+  editingClient = false;
+  clientForm = {
+    clientName: "",
+    clientEmail: "",
+    contactPersonName: "",
+    contactPersonEmail: "",
+    contactPersonPhone: "",
+  };
+
   constructor(
     private dialog: MatDialog,
     private clientService: ClientService,
+    private staffingService: StaffingService,
     private router: Router,
-    private refreshService: RefreshService
+    private refreshService: RefreshService,
+    private auth: KeycloakAuthService
   ) {}
 
   ngOnInit() {
@@ -124,5 +148,30 @@ export class ClientsComponent {
   }
   openEmployeeProfile(clientId: number) {
     this.router.navigate(["/clients", clientId]);
+  }
+
+  isAdmin(): boolean {
+    return this.auth.isAdmin();
+  }
+
+  openClientEdit(client: ClientDTO): void {
+    const dialogRef = this.dialog.open(EditClientDialogComponent, {
+      width: "600px",
+      data: {
+        clientName: client.clientName,
+        clientEmail: client.clientEmail,
+        contactPersonName: client.contactPersonName,
+        contactPersonEmail: client.contactPersonEmail,
+        contactPersonPhone: client.contactPersonPhone,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.staffingService.updateClient(client.id, result).subscribe(() => {
+          this.loadClients();
+        });
+      }
+    });
   }
 }

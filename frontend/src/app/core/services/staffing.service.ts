@@ -152,4 +152,27 @@ export class StaffingService {
       variables: { id, newTitle },
     });
   }
+
+  updateClient(
+    clientId: any,
+    clientForm: {
+      clientName: string;
+      clientEmail: string;
+      contactPersonName: string;
+      contactPersonEmail: string;
+      contactPersonPhone: string;
+    }
+  ) {
+    return this.gql.mutate({
+      mutation: gql`
+        mutation UpdateClient($id: Int!, $input: ClientInput!) {
+          updateClient(id: $id, input: $input) {
+            id
+            clientName
+          }
+        }
+      `,
+      variables: { id: clientId, input: clientForm },
+    });
+  }
 }

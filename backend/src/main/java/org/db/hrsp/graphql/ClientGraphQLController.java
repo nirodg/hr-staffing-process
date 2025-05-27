@@ -46,8 +46,8 @@ public class ClientGraphQLController {
     }
 
     @MutationMapping
-    public ClientDTO updateClient(@Argument Long id, @Argument ClientDTO input) throws Throwable {
-        return clientService.update(id, input);
+    public ClientDTO updateClient(@Argument Integer id, @Argument ClientDTO input) throws Throwable {
+        return clientService.update(Long.valueOf(id), input);
     }
 
 }
