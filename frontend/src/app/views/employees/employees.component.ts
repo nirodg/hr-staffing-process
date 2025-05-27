@@ -15,6 +15,7 @@ import { Router } from "@angular/router";
 import { User } from "src/stories/user";
 import { EditEmployeeDialogComponent } from "src/app/shared/edit-employee-dialog/edit-employee-dialog.component";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { KeycloakAuthService } from "src/app/core/services/keycloak-auth.service";
 
 @Component({
   selector: "app-employees",
@@ -113,6 +114,7 @@ export class EmployeesComponent {
     private refreshService: RefreshService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
+    private auth: KeycloakAuthService
   ) {}
 
   ngOnInit() {
@@ -144,11 +146,17 @@ this.dialog.open(EditEmployeeDialogComponent, {
   data: employee
 }).afterClosed().subscribe(result => {
   if (result) {
-    this.employeeService.updateEmployee(employee.id, result).subscribe(() => {
+    this.employeeService.updateEmployee(employee.id, result).subscribe((data) => {
       this.snackBar.open('Employee updated ✅', 'Close', {
         duration: 3000,
         panelClass: ['bg-green-600', 'text-white']
       });
+
+
+      if(this.auth.getUsername() == employee.username){ // triggers topbar update
+        this.auth.setUserProfile(data);
+      }
+
       this.loadData()
     });
   }

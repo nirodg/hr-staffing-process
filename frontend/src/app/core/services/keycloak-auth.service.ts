@@ -1,20 +1,22 @@
-import { inject, Injectable } from '@angular/core';
-import Keycloak from 'keycloak-js';
-import { KeycloakUserInfo } from '../models/keycloak-user-info.model';
-import { PERMISOS } from '../permissions/permissions';
+import { inject, Injectable } from "@angular/core";
+import Keycloak from "keycloak-js";
+import { KeycloakUserInfo } from "../models/keycloak-user-info.model";
+import { PERMISOS } from "../permissions/permissions";
+import { BehaviorSubject, Observable } from "rxjs";
+import { UserDTO } from "../models/user-dto.model";
 
-
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class KeycloakAuthService {
   private keycloak = inject(Keycloak);
+  private userProfile$ = new BehaviorSubject<UserDTO | null>(null);
 
   logout(): void {
     // Broadcast logout across tabs
-    localStorage.setItem('logout-event', Date.now().toString());
-  
+    localStorage.setItem("logout-event", Date.now().toString());
+
     // Redirect to Keycloak logout
     this.keycloak.logout(`${window.location.origin}/logout`);
-  }  
+  }
 
   login(): void {
     this.keycloak.login();
@@ -31,7 +33,10 @@ export class KeycloakAuthService {
 
   getFullName(): string {
     const parsed = this.keycloak.tokenParsed as KeycloakUserInfo | undefined;
-    return parsed?.name ?? `${parsed?.given_name ?? ''} ${parsed?.family_name ?? ''}`.trim();
+    return (
+      parsed?.name ??
+      `${parsed?.given_name ?? ""} ${parsed?.family_name ?? ""}`.trim()
+    );
   }
 
   getParsedToken(): KeycloakUserInfo | undefined {
@@ -51,25 +56,25 @@ export class KeycloakAuthService {
   }
 
   isAdmin(): boolean {
-    return this.hasRole('client_public_admin');
+    return this.hasRole("client_public_admin");
   }
 
   isReadOnly(): boolean {
-    return this.hasRole('client_public_user');
+    return this.hasRole("client_public_user");
   }
 
   isAuthenticated(): boolean {
     return !!this.keycloak.token;
   }
 
-  refreshToken(){
+  refreshToken() {
     return this.keycloak.updateToken(70);
   }
 
   startAutoTokenRefresh(intervalMs = 60000) {
     setInterval(() => {
       this.keycloak.updateToken(70).catch(() => {
-        console.warn('🔐 Token refresh failed, logging out');
+        console.warn("🔐 Token refresh failed, logging out");
         this.logout();
       });
     }, intervalMs);
@@ -80,7 +85,16 @@ export class KeycloakAuthService {
   hasPermission(permissionKey: keyof typeof PERMISOS): boolean {
     const roles = this.getRoles();
     const allowed = PERMISOS[permissionKey];
-    if (Array.isArray(allowed)) return allowed.some(role => roles.includes(role));
+    if (Array.isArray(allowed))
+      return allowed.some((role) => roles.includes(role));
     return roles.includes(allowed);
+  }
+
+  setUserProfile(profile: UserDTO): void {
+    this.userProfile$.next(profile);
+  }
+
+  getUserProfile(): Observable<UserDTO | null> {
+    return this.userProfile$.asObservable();
   }
 }

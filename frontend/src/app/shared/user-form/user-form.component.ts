@@ -21,6 +21,7 @@ import { Observable } from "rxjs";
 import { MatDialog } from "@angular/material/dialog";
 import { EditClientDialogComponent } from "src/app/shared/edit-clien-dialog/edit-client-dialog.component";
 import { EditEmployeeDialogComponent } from "../edit-employee-dialog/edit-employee-dialog.component";
+import { KeycloakAuthService } from "src/app/core/services/keycloak-auth.service";
 
 @Component({
   selector: "app-user-form",
@@ -113,6 +114,7 @@ export class UserFormComponent implements OnInit {
     private route: ActivatedRoute,
     private location: Location,
     private dialog: MatDialog,
+    private auth: KeycloakAuthService,
     @Optional() private dialogRef?: MatDialogRef<UserFormComponent>,
     @Optional()
     @Inject(MAT_DIALOG_DATA)
@@ -181,6 +183,7 @@ export class UserFormComponent implements OnInit {
               this.userService.getMyProfile().subscribe((user) => {
                 this.user = user;
                 this.buildForm(user);
+                this.auth.setUserProfile(user); // triggers topbar update
               });
             });
           }

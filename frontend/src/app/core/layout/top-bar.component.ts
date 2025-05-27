@@ -6,11 +6,18 @@ import { Component, inject } from "@angular/core";
 import { ConfigService } from "../services/config.service";
 import { KeycloakAuthService } from "../services/keycloak-auth.service";
 import { RouterModule } from "@angular/router";
+import { UserService } from "../services/user.service";
 
 @Component({
   selector: "app-top-bar",
   standalone: true,
-  imports: [CommonModule, MatMenuModule, MatIconModule, MatButtonModule, RouterModule],
+  imports: [
+    CommonModule,
+    MatMenuModule,
+    MatIconModule,
+    MatButtonModule,
+    RouterModule,
+  ],
   template: `
     <header class="w-full bg-white shadow-md px-6 py-4">
       <div class="flex justify-between items-center">
@@ -51,9 +58,23 @@ export class TopBarComponent {
   private kc = inject(KeycloakAuthService);
 
   siteName = this.config.siteName;
+  username = "";
 
-  get username(): string {
-    return this.kc.getFullName();
+  constructor(
+    private auth: KeycloakAuthService,
+    private userService: UserService
+  ) {}
+
+  ngOnInit(): void {
+    this.userService.getMyProfile().subscribe((profile) => {
+      this.auth.setUserProfile(profile);
+    });
+
+    this.auth.getUserProfile().subscribe((profile) => {
+      if (profile) {
+        this.username = `${profile.firstName} ${profile.lastName}`;
+      }
+    });
   }
 
   logout(): void {

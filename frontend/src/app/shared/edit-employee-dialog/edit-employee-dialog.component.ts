@@ -142,7 +142,6 @@ export class EditEmployeeDialogComponent implements OnInit {
   }
 
   close(): void {
-    console.log(this.hasChanged);
     this.dialogRef.close();
   }
 
