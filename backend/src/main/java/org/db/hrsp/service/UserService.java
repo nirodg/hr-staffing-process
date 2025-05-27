@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.db.hrsp.api.common.NotFoundException;
+import org.db.hrsp.api.config.security.JwtInterceptor;
 import org.db.hrsp.api.dto.UserDTO;
 import org.db.hrsp.api.dto.mapper.UserMapper;
 import org.db.hrsp.common.LogMethodExecution;
@@ -22,6 +23,8 @@ import java.util.Optional;
 public class UserService extends AbstractService<User, UserDTO, UserRepository, UserMapper> {
 
     private final UserRepository repository;
+    private final JwtInterceptor jwtInterceptor;
+    private final UserMapper mapper;
 
     @Transactional
     public void updatePosition(String username, String newPosition) {
@@ -58,5 +61,12 @@ public class UserService extends AbstractService<User, UserDTO, UserRepository, 
 
     public long countByRole(String role) {
         return repository.countByRoles(Role.valueOf(role));
+    }
+
+    public UserDTO updateCurrentUser(UserDTO input) {
+        User user = jwtInterceptor.getCurrentUser();
+        mapper.update(user, input);
+        repository.save(user);
+        return mapper.toDto(user);
     }
 }

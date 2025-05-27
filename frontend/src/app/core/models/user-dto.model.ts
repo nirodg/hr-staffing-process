@@ -8,5 +8,5 @@ export interface UserDTO extends AbstractEntity {
   position?: string;
   email?: string;
   available?: boolean;
-  roles?: RoleDTO
+  roles?: RoleDTO[]
 }

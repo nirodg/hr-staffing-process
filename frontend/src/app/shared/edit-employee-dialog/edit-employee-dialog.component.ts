@@ -148,7 +148,13 @@ export class EditEmployeeDialogComponent implements OnInit {
 
   save(): void {
     if (this.form.valid && this.hasChanged) {
-      this.dialogRef.close(this.form.value);
+      const raw = this.form.getRawValue();
+      const payload = {
+        ...raw,
+        roles: [raw.roles], // Ensure it's always an array
+      };
+
+      this.dialogRef.close(payload);
     }
   }
 }

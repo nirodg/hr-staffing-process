@@ -49,5 +49,9 @@ public class UserController {
             return null;
         });
     }
+    @PutMapping("/me")
+    public UserDTO updateMyProfile(@RequestBody UserDTO input) {
+        return service.updateCurrentUser(input);
+    }
 
 }
