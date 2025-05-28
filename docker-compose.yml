@@ -187,6 +187,25 @@ services:
       - "6831:6831/udp"      # Thrift/UDP
       - 14268:14268 
 
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - core-services      
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    ports:
+      - "8001:8001"
+      - '5540:5540'
+    depends_on:
+      - redis
+    networks:
+      - core-services  
   frontend-app:
     build: ./frontend/
     image: local/staffing-ui
@@ -241,3 +260,7 @@ services:
       retries: 5
     networks:
       - core-services      
+
+
+volumes:
+  redis_data:      

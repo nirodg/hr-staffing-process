@@ -13,11 +13,15 @@ public class KafkaPayload {
     private Action action;
     private Long entityId; // e.g., comment ID, staffing ID, client ID
     private Long parentId; // optional: for replies, or nesting
+    private String entity;
+    private String username;
 
     public enum Action {
         CREATE,
         UPDATE,
         DELETE,
+        LOCK,
+        UNLOCK
         ;
 
         public static Action fromString(String action) {
@@ -31,6 +35,7 @@ public class KafkaPayload {
         CLIENTS("CLIENTS"),
         EMPLOYEES("EMPLOYEES"),
         COMMENTS("COMMENTS"),
+        EDIT_LOCKS("EDIT-LOCKS")
         ;
 
         private final String topicName;

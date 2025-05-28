@@ -28,6 +28,7 @@ import { UserProjectsComponent } from './user-projects/user-projects.component';
 import { ClientDetailComponent } from './views/client-detail/client-detail.component';
 import { EditClientDialogComponent } from './shared/edit-clien-dialog/edit-client-dialog.component';
 import { EditEmployeeDialogComponent } from './shared/edit-employee-dialog/edit-employee-dialog.component';
+import { EditLockAwareComponent } from './components/edit-lock-aware/edit-lock-aware.component';
 
 @Injectable({ providedIn: 'root' })
 export class TranslocoHttpLoader implements TranslocoLoader {
@@ -71,7 +72,8 @@ export class TranslocoHttpLoader implements TranslocoLoader {
     UserProjectsComponent,
     ClientDetailComponent,
     EditClientDialogComponent,
-    EditEmployeeDialogComponent
+    EditEmployeeDialogComponent,
+    EditLockAwareComponent
   ],
 })
 export class TranslocoRootModule {}

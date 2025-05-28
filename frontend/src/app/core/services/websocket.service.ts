@@ -4,12 +4,15 @@ import SockJS from "sockjs-client/dist/sockjs";
 import { Subject } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { KeycloakAuthService } from "./keycloak-auth.service";
+import { RefreshService } from "./refresh.service";
 
 @Injectable({ providedIn: "root" })
 export class WebSocketService {
   private stompClient!: Client;
   private messageSubject = new Subject<any>();
   private auth = inject(KeycloakAuthService);
+
+  constructor(private refresh: RefreshService) {}
 
   connect(): void {
     const headers: { [key: string]: string } = {};
@@ -48,6 +51,12 @@ export class WebSocketService {
 
     this.stompClient.onConnect = () => {
       this.stompClient.subscribe("/backend-updates", (message: any) => {
+
+        const payload = JSON.parse(message.body);
+        console.log(payload)
+        if (payload.topic === 'EDIT_LOCKS') {
+          this.refresh.refreshEditLock(payload); // 🔁 Trigger global edit lock refresh
+        }
         this.messageSubject.next(JSON.parse(message.body));
       });
     };

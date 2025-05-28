@@ -1,12 +1,14 @@
 import { Injectable } from "@angular/core";
+import { TopicMessages } from "kafkajs";
 import { Subject, Observable } from "rxjs";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class RefreshService {
   private clientsSubject = new Subject<void>();
   private employeesSubject = new Subject<void>();
   private staffingSubject = new Subject<void>();
   private commentsSubject = new Subject<void>();
+  private editLockSubject = new Subject<Object>();
 
   get clients$(): Observable<void> {
     return this.clientsSubject.asObservable();
@@ -24,6 +26,10 @@ export class RefreshService {
     return this.commentsSubject.asObservable();
   }
 
+  get editLock$(): Observable<Object> {
+    return this.editLockSubject.asObservable();
+  }
+
   refreshClients() {
     this.clientsSubject.next();
   }
@@ -38,5 +44,9 @@ export class RefreshService {
 
   refreshComments() {
     this.commentsSubject.next();
+  }
+
+  refreshEditLock(object: any) {
+    this.editLockSubject.next(object);
   }
 }

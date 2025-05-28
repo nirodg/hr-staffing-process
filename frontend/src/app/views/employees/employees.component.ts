@@ -140,27 +140,30 @@ export class EmployeesComponent {
   }
 
   openEditDialog(employee: UserDTO): void {
+    this.dialog
+      .open(EditEmployeeDialogComponent, {
+        width: "600px",
+        data: employee,
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.employeeService
+            .updateEmployee(employee.id, result)
+            .subscribe((data) => {
+              this.snackBar.open("Employee updated ✅", "Close", {
+                duration: 3000,
+                panelClass: ["bg-green-600", "text-white"],
+              });
 
-this.dialog.open(EditEmployeeDialogComponent, {
-  width: '600px',
-  data: employee
-}).afterClosed().subscribe(result => {
-  if (result) {
-    this.employeeService.updateEmployee(employee.id, result).subscribe((data) => {
-      this.snackBar.open('Employee updated ✅', 'Close', {
-        duration: 3000,
-        panelClass: ['bg-green-600', 'text-white']
+              if (this.auth.getUsername() == employee.username) {
+                // triggers topbar update
+                this.auth.setUserProfile(data);
+              }
+
+              this.loadData();
+            });
+        }
       });
-
-
-      if(this.auth.getUsername() == employee.username){ // triggers topbar update
-        this.auth.setUserProfile(data);
-      }
-
-      this.loadData()
-    });
-  }
-});
-
   }
 }
