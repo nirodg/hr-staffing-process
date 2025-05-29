@@ -24,6 +24,17 @@ public interface EditLockQueueRepository extends JpaRepository<EditLockQueue, Lo
                                               @Param("username") String username);
 
     @Modifying
+    @Transactional
+    @Query(value = """
+        /* keep original timestamp if row already exists */
+        INSERT INTO edit_lock_queue (entity, entity_id, username, requested_at)
+        VALUES (:entity, :entityId, :username, :requestedAt)
+        ON DUPLICATE KEY UPDATE requested_at = requested_at
+        """, nativeQuery = true)
+    void insertIfAbsent(String entity, Long entityId, String username, Instant requestedAt);
+
+
+    @Modifying
     @Query(value = """
             INSERT INTO edit_lock_queue (entity, entity_id, username, requested_at)
             VALUES (:entity, :entityId, :username, :requestedAt)

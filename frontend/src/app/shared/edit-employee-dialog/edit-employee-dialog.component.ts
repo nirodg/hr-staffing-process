@@ -1,4 +1,10 @@
-import { Component, Inject, OnInit } from "@angular/core";
+import {
+  AfterViewInit,
+  Component,
+  Inject,
+  OnDestroy,
+  OnInit,
+} from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import {
   MatDialogRef,
@@ -14,12 +20,16 @@ import { CommonModule } from "@angular/common";
 import { UserDTO } from "src/app/core/models/user-dto.model";
 import { KeycloakAuthService } from "src/app/core/services/keycloak-auth.service";
 import { UserService } from "src/app/core/services/user.service";
-import { EditLockService } from "src/app/core/services/edit-lock.service";
+import {
+  EditLockResult,
+  EditLockService,
+} from "src/app/core/services/edit-lock.service";
 import { DestroyRef, inject } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { environment } from "src/environments/environment";
 import { EditLockAwareComponent } from "src/app/components/edit-lock-aware/edit-lock-aware.component";
 import { RefreshService } from "src/app/core/services/refresh.service";
+import { MatProgressBarModule } from "@angular/material/progress-bar";
 
 function isEqual(a: any, b: any): boolean {
   const aKeys = Object.keys(a);
@@ -43,14 +53,28 @@ function isEqual(a: any, b: any): boolean {
     MatSelectModule,
     MatButtonModule,
     MatSnackBarModule,
+    MatProgressBarModule,
   ],
   template: `
     <h2 mat-dialog-title>Edit Employee</h2>
-    <form [formGroup]="form" (ngSubmit)="save()" class="p-4 space-y-4">
+
+    <mat-progress-bar
+      *ngIf="waitingForLock"
+      mode="indeterminate"
+      class="mb-2"
+    ></mat-progress-bar>
+
+    <form
+      [formGroup]="form"
+      (ngSubmit)="save()"
+      class="p-4 pt-0 space-y-4"
+      novalidate
+    >
       <div *ngIf="isLockedByOther" class="text-red-600 text-sm">
         ⚠️ This entity is being edited by {{ editingBy }}. <b>READ ONLY</b> mode
         activated 📖
       </div>
+
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Email</mat-label>
         <input matInput formControlName="email" [readonly]="isLockedByOther" />
@@ -89,9 +113,9 @@ function isEqual(a: any, b: any): boolean {
           formControlName="roles"
           [disabled]="isLockedByOther || (editingSelf && isLastAdmin)"
         >
-          <mat-option *ngFor="let role of roles" [value]="role.value">
-            {{ role.label }}
-          </mat-option>
+          <mat-option *ngFor="let role of roles" [value]="role.value">{{
+            role.label
+          }}</mat-option>
         </mat-select>
       </mat-form-field>
 
@@ -99,7 +123,7 @@ function isEqual(a: any, b: any): boolean {
         ❗ You are the only ADMIN. You cannot change your role.
       </div>
 
-      <div class="flex justify-end gap-2 mt-4">
+      <div class="flex justify-end gap-2">
         <button mat-button (click)="close()">Cancel</button>
         <button
           mat-flat-button
@@ -115,18 +139,23 @@ function isEqual(a: any, b: any): boolean {
 })
 export class EditEmployeeDialogComponent
   extends EditLockAwareComponent
-  implements OnInit
+  implements OnInit, AfterViewInit, OnDestroy
 {
   entity = "users";
-  entityId = this.data.id; // default
+  entityId = this.data.id;
   currentUsername = this.auth.getUsername();
-  currentUser: UserDTO;
 
   form: FormGroup;
   initialData: UserDTO;
+
   editingSelf = false;
   isLastAdmin = false;
+
+  waitingForLock = false;
+  editingBy: string | null = null;
+
   private dialogClosed = false;
+
   roles = [
     { value: "CLIENT_PUBLIC_ADMIN", label: "Admin" },
     { value: "CLIENT_PUBLIC_USER", label: "User" },
@@ -134,102 +163,83 @@ export class EditEmployeeDialogComponent
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: UserDTO,
-    public dialogRef: MatDialogRef<EditEmployeeDialogComponent>,
     private fb: FormBuilder,
     private auth: KeycloakAuthService,
     private userService: UserService,
     private editLockService: EditLockService,
-    private refreshService: RefreshService
+    private refreshService: RefreshService,
+    private snack: MatSnackBar,
+    public dialogRef: MatDialogRef<EditEmployeeDialogComponent>
   ) {
     super();
     this.initialData = structuredClone(data);
     this.form = this.fb.group({
-      available: [{ value: data.available, disabled: this.isLockedByOther }],
-      roles: [
-        {
-          value: data.roles?.[0] || "CLIENT_PUBLIC_USER",
-          disabled: this.isLockedByOther,
-        },
-      ],
-      email: [{ value: data.email, disabled: this.isLockedByOther }],
-      firstName: [{ value: data.firstName, disabled: this.isLockedByOther }],
-      lastName: [{ value: data.lastName, disabled: this.isLockedByOther }],
-      position: [{ value: data.position, disabled: this.isLockedByOther }],
+      available: [data.available],
+      roles: [data.roles?.[0] || "CLIENT_PUBLIC_USER"],
+      email: [data.email],
+      firstName: [data.firstName],
+      lastName: [data.lastName],
+      position: [data.position],
     });
-
     this.form.valueChanges.subscribe(() => this.form.markAsTouched());
-    this.dialogRef.afterClosed().subscribe(() => (this.dialogClosed = true));
 
-    this.entityId = this.initialData.id;
+    this.dialogRef.afterClosed().subscribe(() => (this.dialogClosed = true));
+  }
+
+  get isLockedByOther(): boolean {
+    return !!this.editingBy && this.editingBy !== this.currentUsername;
+  }
+
+  ngOnInit(): void {
+    this.editingSelf = this.auth.getUsername() === this.data.username;
+    this.userService
+      .countAdmins()
+      .subscribe((c) => (this.isLastAdmin = c <= 1));
+
+    this.acquireLock();
+  }
+
+  private acquireLock(): void {
+    this.waitingForLock = true;
+    this.editLockService
+      .startEditing(this.entity, this.entityId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res: EditLockResult) => {
+        this.waitingForLock = false;
+        if (res.acquired) {
+          this.editingBy = null;
+          this.form.enable();
+          this.snack.open("You now have editing rights", undefined, {
+            duration: 2500,
+          });
+        } else {
+          this.editingBy = res.editingBy ?? "UNKNOWN";
+          this.form.disable();
+        }
+      });
   }
 
   ngAfterViewInit(): void {
-    this.editingSelf = this.auth.getUsername() === this.data.username;
-    this.currentUser = this.data;
-    this.userService.countAdmins().subscribe((count) => {
-      this.isLastAdmin = count <= 1;
-    });
-    this.refreshService.editLock$.subscribe((evt) => {
-      if (evt.entityId !== this.entityId) return; // Ignore events for other entities
+    this.refreshService.editLock$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((evt) => {
+        if (evt.entityId !== this.entityId) return;
 
-      if (evt.action === "LOCK" && evt.username !== this.currentUsername) {
-        this.editingBy = evt.username;
-        this.form.disable();
-      }
-
-      if (evt.action === "UNLOCK" && evt.username !== this.currentUsername) {
-        this.editingBy = null;
-        this.form.enable();
-
-        // Re-request ownership if dialog is still open
-        if (!this.dialogClosed) {
-          this.editLockService
-            .startEditing(this.entity, this.entityId)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-              next: () => {
-                if (!environment.production) {
-                  console.log(
-                    `[edit-lock] Re-acquired lock for user ${this.entityId}`
-                  );
-                }
-              },
-              error: () => {
-                this.editingBy = null;
-                this.form.disable();
-              },
-            });
+        if (evt.action === "LOCK") {
+          this.editingBy = evt.username;
+          this.form.disable();
         }
-      }
-    });
+
+        if (evt.action === "UNLOCK") {
+          this.editingBy = null;
+          if (!this.dialogClosed) this.acquireLock(); // auto-retry
+        }
+      });
   }
-
-  // FIXME : COmmented out becuase it overrides the inhered ngOnInit!!! Must be fixed somehow!
-  // ngOnInit(): void {
-  //   this.editLockService
-  //     .startEditing("users", this.data.id)
-  //     .pipe(takeUntilDestroyed(this.destroyRef))
-  //     .subscribe();
-  //   if (!environment.production) {
-  //     console.log(`[edit-lock] Marking user ${this.data.id} as editing`);
-  //   }
-
-  //   this.editingSelf = this.auth.getUsername() === this.data.username;
-  //   this.userService.countAdmins().subscribe((count) => {
-  //     this.isLastAdmin = count <= 1;
-  //   });
-
-  //   this.refreshService.editLock$.subscribe((data) => {
-  //     if (data["action"] == "LOCK" && data["entityId"] === this.data.id) {
-  //       console.log(`A ${data["action"]} was done!`);
-  //       this.isLockedByOther = true;
-  //     }
-  //   });
-  // }
 
   ngOnDestroy(): void {
     super.ngOnDestroy?.();
-    this.editLockService.stopEditing(this.entity, this.data.id).subscribe();
+    this.editLockService.stopEditing(this.entity, this.entityId).subscribe();
   }
 
   get hasChanged(): boolean {
@@ -242,7 +252,6 @@ export class EditEmployeeDialogComponent
       lastName: this.initialData.lastName,
       position: this.initialData.position,
     };
-
     return !isEqual(current, original);
   }
 
@@ -253,12 +262,7 @@ export class EditEmployeeDialogComponent
   save(): void {
     if (this.form.valid && this.hasChanged) {
       const raw = this.form.getRawValue();
-      const payload = {
-        ...raw,
-        roles: [raw.roles], // Ensure it's always an array
-      };
-
-      this.dialogRef.close(payload);
+      this.dialogRef.close({ ...raw, roles: [raw.roles] });
     }
   }
 }
