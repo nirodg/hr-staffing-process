@@ -9,6 +9,19 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { Router } from "@angular/router";
 import { WebSocketService } from "./websocket.service";
 
+/** 
+ * NotificationService listens to WebSocket messages and displays notifications
+ * based on the Kafka topics and actions received. 
+ * 
+ * It also handles data refresh for various components based on the current route.
+ * It uses a Subject to emit messages that can be subscribed to by components
+ * 
+ * * It also integrates with the RefreshService to trigger data refreshes
+ * for specific topics.
+ * 
+ * The service listens for messages from the WebSocketService and processes
+ * them to determine the appropriate action and message to display.
+ */
 @Injectable({ providedIn: "root" })
 export class NotificationService {
   private subject = new Subject<string>();
@@ -64,7 +77,6 @@ export class NotificationService {
 
   private handleDataRefresh(payload: KafkaPayload, snackMessage: string) {
     const currentUrl = this.router.url;
-
     switch (payload.topic) {
       case KafkaTopic.CLIENTS:
         if (currentUrl === "/clients") {
@@ -102,6 +114,25 @@ export class NotificationService {
         }
         break;
       }
+
+      case KafkaTopic.EDIT_LOCKS:
+        this.refreshService.refreshEditLock(payload);
+        // Handle edit lock notifications
+        // if (payload.action === KafkaAction.LOCK) {
+        //   this.refreshService.refreshEditLock({
+        //     action: "LOCK",
+        //     entityId: payload.entityId,
+        //     username: payload.userId,
+        //   });
+        //   this.displaySnack(`🔒 ${payload.userId} has locked the entity.`);
+        // } else if (payload.action === KafkaAction.UNLOCK) {
+        //   this.refreshService.refreshEditLock({
+        //     action: "UNLOCK",
+        //     entityId: payload.entityId,
+        //   });
+        //   this.displaySnack(`🔓 The entity has been unlocked.`);
+        // }
+        break;
 
       default:
         break;

@@ -8,6 +8,8 @@ import org.db.hrsp.api.config.security.JwtInterceptor;
 import org.db.hrsp.api.dto.UserDTO;
 import org.db.hrsp.api.dto.mapper.UserMapper;
 import org.db.hrsp.common.LogMethodExecution;
+import org.db.hrsp.kafka.KafkaPublisher;
+import org.db.hrsp.kafka.model.KafkaPayload;
 import org.db.hrsp.service.repository.UserRepository;
 import org.db.hrsp.service.repository.model.Role;
 import org.db.hrsp.service.repository.model.User;
@@ -25,6 +27,7 @@ public class UserService extends AbstractService<User, UserDTO, UserRepository, 
     private final UserRepository repository;
     private final JwtInterceptor jwtInterceptor;
     private final UserMapper mapper;
+    private final KafkaPublisher kafkaPublisher;
 
     @Transactional
     public void updatePosition(String username, String newPosition) {
@@ -67,6 +70,7 @@ public class UserService extends AbstractService<User, UserDTO, UserRepository, 
         User user = jwtInterceptor.getCurrentUser();
         mapper.update(user, input);
         repository.save(user);
+        kafkaPublisher.publish(KafkaPayload.Topic.EMPLOYEES, KafkaPayload.Action.UPDATE);
         return mapper.toDto(user);
     }
 }

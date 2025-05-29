@@ -1,6 +1,8 @@
 export enum KafkaAction {
     CREATE = 'CREATE',
     UPDATE = 'UPDATE',
-    DELETE = 'DELETE'
+    DELETE = 'DELETE',
+    LOCK = "LOCK",
+    UNLOCK = "UNLOCK"
   }
   

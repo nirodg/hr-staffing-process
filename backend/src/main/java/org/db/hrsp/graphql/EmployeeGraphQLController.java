@@ -6,6 +6,8 @@ import org.db.hrsp.api.config.security.JwtInterceptor;
 import org.db.hrsp.api.dto.EmployeeDTO;
 import org.db.hrsp.api.dto.RoleDto;
 import org.db.hrsp.api.dto.UserDTO;
+import org.db.hrsp.kafka.KafkaPublisher;
+import org.db.hrsp.kafka.model.KafkaPayload;
 import org.db.hrsp.service.EmployeeService;
 import org.db.hrsp.service.UserService;
 import org.db.hrsp.service.repository.model.Role;
@@ -23,11 +25,13 @@ public class EmployeeGraphQLController {
     private final EmployeeService employeeService;
     private final UserService userService;
     private final JwtInterceptor jwt;
+    private final KafkaPublisher kafkaPublisher;
 
-    public EmployeeGraphQLController(EmployeeService EmployeeService, UserService userService, JwtInterceptor jwt) {
+    public EmployeeGraphQLController(EmployeeService EmployeeService, UserService userService, JwtInterceptor jwt, KafkaPublisher kafkaPublisher) {
         this.employeeService = EmployeeService;
         this.userService = userService;
         this.jwt = jwt;
+        this.kafkaPublisher = kafkaPublisher;
     }
 
     @QueryMapping
@@ -71,9 +75,14 @@ public class EmployeeGraphQLController {
             }
         }
 
-        return userService.update(id, input);
+        UserDTO updated;
+        try {
+            updated = userService.update(id, input);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        } finally {
+            kafkaPublisher.publish(KafkaPayload.Topic.EMPLOYEES, KafkaPayload.Action.UPDATE);
+        }
+        return updated;
     }
-
-
-
 }

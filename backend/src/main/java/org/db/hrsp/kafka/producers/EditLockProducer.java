@@ -14,6 +14,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Deprecated
 public class EditLockProducer {
 
     @Autowired

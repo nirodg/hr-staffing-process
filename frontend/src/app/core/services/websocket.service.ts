@@ -51,13 +51,8 @@ export class WebSocketService {
 
     this.stompClient.onConnect = () => {
       this.stompClient.subscribe("/backend-updates", (message: any) => {
-
         const payload = JSON.parse(message.body);
-        console.log(payload)
-        if (payload.topic === 'EDIT_LOCKS') {
-          this.refresh.refreshEditLock(payload); // 🔁 Trigger global edit lock refresh
-        }
-        this.messageSubject.next(JSON.parse(message.body));
+        this.messageSubject.next(payload);
       });
     };
 

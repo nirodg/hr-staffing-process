@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { TopicMessages } from "kafkajs";
 import { Subject, Observable } from "rxjs";
+import { KafkaPayload } from "../models/kafka-payload";
 
 @Injectable({ providedIn: "root" })
 export class RefreshService {
@@ -26,7 +27,7 @@ export class RefreshService {
     return this.commentsSubject.asObservable();
   }
 
-  get editLock$(): Observable<Object> {
+  get editLock$(): Observable<KafkaPayload> {
     return this.editLockSubject.asObservable();
   }
 
