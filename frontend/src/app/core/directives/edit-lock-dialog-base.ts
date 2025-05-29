@@ -2,11 +2,12 @@
 // edit-lock-dialog-base.ts  (generic + safe id)
 // ─────────────────────────────────────────────
 import {
-  AfterViewInit,
-  Directive,
-  Inject,
-  OnDestroy,
-  OnInit,
+    AfterViewInit,
+    Directive,
+    inject,
+    Inject,
+    OnDestroy,
+    OnInit,
 } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
@@ -16,10 +17,11 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 import { EditLockAwareComponent } from "src/app/components/edit-lock-aware/edit-lock-aware.component";
 import {
-  EditLockService,
-  EditLockResult,
+    EditLockService,
+    EditLockResult,
 } from "src/app/core/services/edit-lock.service";
 import { RefreshService } from "src/app/core/services/refresh.service";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 /** helper */
 export type WithId<T> = T & { id: number };
@@ -41,6 +43,8 @@ export abstract class EditLockDialogBase<T extends { id?: number }>
 
   private dialogClosed = false;
   private heartbeatSub?: Subscription;
+
+  snack = inject(MatSnackBar);
 
   protected constructor(
     @Inject(MAT_DIALOG_DATA) public data: T,
@@ -71,6 +75,10 @@ export abstract class EditLockDialogBase<T extends { id?: number }>
     return true;
   }
 
+   close(): void {
+    this.dialogRef.close();
+  }
+
   /* ───────── PUBLIC API FOR CHILD CLASS ───────── */
   protected acquireLock(): void {
     this.waitingForLock = true;
@@ -83,6 +91,9 @@ export abstract class EditLockDialogBase<T extends { id?: number }>
           this.editingBy = null;
           this.onLockAcquired();
           this.startHeartbeat();
+          this.snack.open("You now have editing rights", undefined, {
+            duration: 2500,
+          });
         } else {
           this.editingBy = res.editingBy ?? "UNKNOWN";
           this.onLockLost();
@@ -109,10 +120,11 @@ export abstract class EditLockDialogBase<T extends { id?: number }>
     this.refresh.editLock$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((evt) => {
-        if (evt.entityId !== this.entityId) return;
-
+        // If the event is not for this entity, ignore it
+        if ( evt.entity !== this.entity || evt.entityId !== this.entityId ) return;
         if (evt.action === "LOCK") {
           this.editingBy = evt.username;
+          this.entityId == evt.entityId ? this.onLockAcquired() : null;
           this.onLockLost();
         }
 

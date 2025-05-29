@@ -86,14 +86,14 @@ import { AbstractEntity } from "src/app/core/models/abstract-dto.model";
       </mat-form-field>
 
       <div class="flex justify-end gap-2 mt-4">
-        <button mat-button type="button" (click)="dialogRef.close()">
+        <button mat-button type="button" (click)="close()">
           Cancel
         </button>
         <button
           mat-flat-button
           color="primary"
           type="submit"
-          [disabled]="!hasChanged || isLockedByOther"
+          [disabled]="!hasChanged() || isLockedByOther"
         >
           💾 Save
         </button>
@@ -105,8 +105,8 @@ export class EditClientDialogComponent
   extends EditLockDialogBase<ClientDTO>
   implements OnInit
 {
-  entityId: number = this.data.id;
   entity: string = "client";
+  entityId: number = this.data.id;
   currentUsername: string = this.auth.getUsername();
 
   protected onLockAcquired(): void {
@@ -134,7 +134,6 @@ export class EditClientDialogComponent
   ngOnInit(): void {
     this.form.disable(); // initially disable until lock is acquired
     this.acquireLock();
-    console.log(this.data);
     this.entityId = this.initialData.id;
   }
 
@@ -144,8 +143,7 @@ export class EditClientDialogComponent
     fb: FormBuilder,
     private auth: KeycloakAuthService,
     editLock: EditLockService,
-    refresh: RefreshService,
-    private snack: MatSnackBar
+    refresh: RefreshService
   ) {
     super(data as Required<ClientDTO>, dialogRef, editLock, refresh);
     this.initialData = structuredClone(data);
