@@ -19,31 +19,37 @@ public class LiveEditController {
     private final EditLockProducer editLockProducer;
     private final JwtInterceptor jwt;
 
-    // In-memory lock registry (replace Redis)
     private final Map<String, String> activeLocks = new ConcurrentHashMap<>();
 
     @PostMapping("/{entity}/{id}/start")
-    public void startEditing(@PathVariable String entity, @PathVariable Long id) {
-        String key = generateKey(entity, id);
+    public ResponseEntity<?> startEditing(@PathVariable String entity, @PathVariable Long id) {
         String username = jwt.getCurrentUser().getUsername();
-        activeLocks.put(key, username);
+        boolean success = tryStartEditing(entity, id, username);
 
+        if (!success) {
+            String currentEditor = activeLocks.get(generateKey(entity, id));
+            return ResponseEntity.status(409).body(currentEditor); // 🔒 Conflict – locked by someone else
+        }
 
+        // Publish LOCK event
         KafkaPayload payload = KafkaPayload.builder()
                 .entity(entity)
                 .entityId(id)
                 .userId(String.valueOf(jwt.getCurrentUser().getId()))
-                .username(jwt.getCurrentUser().getUsername())
+                .username(username)
                 .action(KafkaPayload.Action.LOCK)
                 .topic(KafkaPayload.Topic.EDIT_LOCKS)
                 .build();
         editLockProducer.publishLock(payload);
+
+        return ResponseEntity.ok().build(); // ✅ Lock acquired
     }
 
     @DeleteMapping("/{entity}/{id}/stop")
     public void stopEditing(@PathVariable String entity, @PathVariable Long id) {
         String key = generateKey(entity, id);
         activeLocks.remove(key);
+
         KafkaPayload payload = KafkaPayload.builder()
                 .entity(entity)
                 .entityId(id)
@@ -66,5 +72,16 @@ public class LiveEditController {
     private String generateKey(String entity, Long id) {
         return entity + ":" + id;
     }
-}
 
+    private boolean tryStartEditing(String entity, Long id, String newEditor) {
+        String key = generateKey(entity, id);
+        String currentEditor = activeLocks.get(key);
+
+        if (currentEditor != null && !currentEditor.equals(newEditor)) {
+            return false; // Already locked by someone else
+        }
+
+        activeLocks.put(key, newEditor);
+        return true;
+    }
+}

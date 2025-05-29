@@ -47,40 +47,48 @@ function isEqual(a: any, b: any): boolean {
   template: `
     <h2 mat-dialog-title>Edit Employee</h2>
     <div *ngIf="isLockedByOther" class="text-red-600 text-sm">
-      ⚠️ This entity is being edited by {{ editingBy }}
+      ⚠️ This entity is being edited by {{ editingBy }}. READ ONLY mode
+      activated 📖
     </div>
 
-    <form
-      [formGroup]="form"
-      (ngSubmit)="save()"
-      class="p-4 space-y-4"
-      [class.pointer-events-none]="isLockedByOther"
-    >
+    <form [formGroup]="form" (ngSubmit)="save()" class="p-4 space-y-4">
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Email</mat-label>
-        <input matInput formControlName="email" />
+        <input matInput formControlName="email" [readonly]="isLockedByOther" />
       </mat-form-field>
 
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>First Name</mat-label>
-        <input matInput formControlName="firstName" />
+        <input
+          matInput
+          formControlName="firstName"
+          [readonly]="isLockedByOther"
+        />
       </mat-form-field>
 
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Last Name</mat-label>
-        <input matInput formControlName="lastName" />
+        <input
+          matInput
+          formControlName="lastName"
+          [readonly]="isLockedByOther"
+        />
       </mat-form-field>
 
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Position</mat-label>
-        <input matInput formControlName="position" />
+        <input
+          matInput
+          formControlName="position"
+          [readonly]="isLockedByOther"
+        />
       </mat-form-field>
 
       <mat-form-field appearance="fill" class="w-full">
         <mat-label>Role</mat-label>
         <mat-select
           formControlName="roles"
-          [disabled]="editingSelf && isLastAdmin"
+          [disabled]="isLockedByOther || (editingSelf && isLastAdmin)"
         >
           <mat-option *ngFor="let role of roles" [value]="role.value">
             {{ role.label }}
@@ -98,7 +106,7 @@ function isEqual(a: any, b: any): boolean {
           mat-flat-button
           color="primary"
           type="submit"
-          [disabled]="!hasChanged"
+          [disabled]="!hasChanged || isLockedByOther"
         >
           💾 Save
         </button>
@@ -136,12 +144,17 @@ export class EditEmployeeDialogComponent
     super();
     this.initialData = structuredClone(data);
     this.form = this.fb.group({
-      available: [data.available],
-      roles: [data.roles?.[0] || "CLIENT_PUBLIC_USER"],
-      email: [data.email],
-      firstName: [data.firstName],
-      lastName: [data.lastName],
-      position: [data.position],
+      available: [{ value: data.available, disabled: this.isLockedByOther }],
+      roles: [
+        {
+          value: data.roles?.[0] || "CLIENT_PUBLIC_USER",
+          disabled: this.isLockedByOther,
+        },
+      ],
+      email: [{ value: data.email, disabled: this.isLockedByOther }],
+      firstName: [{ value: data.firstName, disabled: this.isLockedByOther }],
+      lastName: [{ value: data.lastName, disabled: this.isLockedByOther }],
+      position: [{ value: data.position, disabled: this.isLockedByOther }],
     });
 
     this.form.valueChanges.subscribe(() => this.form.markAsTouched());
@@ -156,7 +169,7 @@ export class EditEmployeeDialogComponent
     });
     this.refreshService.editLock$.subscribe((data) => {
       if (data["action"] === "LOCK" && data["entityId"] === this.data.id) {
-        this.editingBy =  data["username"];
+        this.editingBy = data["username"];
       } else if (
         data["action"] === "UNLOCK" &&
         data["entityId"] === this.data.id
