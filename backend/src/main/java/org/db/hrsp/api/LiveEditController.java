@@ -6,48 +6,67 @@ import org.db.hrsp.service.EditLockQueueService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
+/**
+ * REST façade for live-edit (acquire / heart-beat / release) endpoints.
+ * <p>Base path: <strong>/api/editing</strong></p>
+ */
 @RestController
 @RequestMapping("/api/editing")
 @RequiredArgsConstructor
 public class LiveEditController {
 
     private final EditLockQueueService editLockQueueService;
-    private final JwtInterceptor jwt;
+    private final JwtInterceptor jwt;   // supplies current user
+
+    /* ─────────────────────────────────────── start ─────────────────────────────────────── */
 
     @PostMapping("/{entity}/{id}/start")
-    public ResponseEntity<?> startEditing(@PathVariable("entity") String entity, @PathVariable("id") Long id) {
+    public ResponseEntity<?> startEditing(@PathVariable String entity,
+                                          @PathVariable Long id) {
+
         String username = jwt.getCurrentUser().getUsername();
         Long userId = jwt.getCurrentUser().getId();
 
-        boolean acquired = editLockQueueService.tryAcquireLock(entity, id, username, userId);
-        if (acquired) {
-            return ResponseEntity.ok().build();
-        } else {
-            return editLockQueueService.getCurrentEditor(entity, id)
-                    .map(editor -> ResponseEntity.status(409).body(editor))
-                    .orElseGet(() -> ResponseEntity.status(409).build());
-        }
+        boolean acquired = editLockQueueService.tryAcquire(entity, id, username, userId);
+
+        return acquired
+                ? ResponseEntity.ok().build()
+                : editLockQueueService.getCurrentEditor(entity, id)
+                .map(owner -> ResponseEntity.status(409).body(owner)) // conflict + current owner
+                .orElseGet(() -> ResponseEntity.status(409).build());
     }
 
-    @DeleteMapping("/{entity}/{id}/stop")
-    public ResponseEntity<?> stopEditing(@PathVariable String entity, @PathVariable Long id) {
-        String username = jwt.getCurrentUser().getUsername();
-        Long userId = jwt.getCurrentUser().getId();
+    /* ──────────────────────────────────── heart-beat ───────────────────────────────────── */
 
-        editLockQueueService.releaseLock(entity, id, username, userId);
+    @PostMapping("/{entity}/{id}/touch")
+    public ResponseEntity<Void> touch(@PathVariable String entity,
+                                      @PathVariable Long id) {
+
+        editLockQueueService.touch(entity, id, jwt.getCurrentUser().getUsername());
         return ResponseEntity.ok().build();
     }
 
+    /* ────────────────────────────────────── stop ───────────────────────────────────────── */
+
+    @DeleteMapping("/{entity}/{id}/stop")
+    public ResponseEntity<Void> stopEditing(@PathVariable String entity,
+                                            @PathVariable Long id) {
+
+        String username = jwt.getCurrentUser().getUsername();
+        Long userId = jwt.getCurrentUser().getId();
+
+        editLockQueueService.release(entity, id, username, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    /* ───────────────────────────────────── status ──────────────────────────────────────── */
+
     @GetMapping("/{entity}/{id}")
-    public ResponseEntity<String> isBeingEdited(@PathVariable String entity, @PathVariable Long id) {
+    public ResponseEntity<String> currentEditor(@PathVariable String entity,
+                                                @PathVariable Long id) {
+
         return editLockQueueService.getCurrentEditor(entity, id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.noContent().build());
+                .map(ResponseEntity::ok)          // 200 + username
+                .orElseGet(() -> ResponseEntity.noContent().build()); // 204 = free
     }
-
-    private String generateKey(String entity, Long id) {
-        return entity + ":" + id;
-    }
-
 }

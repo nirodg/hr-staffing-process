@@ -157,13 +157,7 @@ export class ClientsComponent {
   openClientEdit(client: ClientDTO): void {
     const dialogRef = this.dialog.open(EditClientDialogComponent, {
       width: "600px",
-      data: {
-        clientName: client.clientName,
-        clientEmail: client.clientEmail,
-        contactPersonName: client.contactPersonName,
-        contactPersonEmail: client.contactPersonEmail,
-        contactPersonPhone: client.contactPersonPhone,
-      },
+      data: client
     });
 
     dialogRef.afterClosed().subscribe((result) => {

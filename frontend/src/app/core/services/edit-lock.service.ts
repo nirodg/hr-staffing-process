@@ -1,8 +1,11 @@
 import { Injectable } from "@angular/core";
-import { HttpClient, HttpErrorResponse, HttpResponse } from "@angular/common/http";
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpResponse,
+} from "@angular/common/http";
 import { environment } from "src/environments/environment";
 import { catchError, map, Observable, of, throwError } from "rxjs";
-
 
 export interface EditLockResult {
   acquired: boolean;
@@ -17,8 +20,12 @@ export class EditLockService {
 
   startEditing(entity: string, id: number): Observable<EditLockResult> {
     // return this.http.post<String>(`${this.baseUrl}/${entity}/${id}/start`, {});
-     return this.http
-      .post<void>(`${this.baseUrl}/${entity}/${id}/start`, {}, { observe: "response" })
+    return this.http
+      .post<void>(
+        `${this.baseUrl}/${entity}/${id}/start`,
+        {},
+        { observe: "response" }
+      )
       .pipe(
         map((res: HttpResponse<void>) => ({ acquired: res.status === 200 })),
         catchError((err: HttpErrorResponse) => {
@@ -41,5 +48,10 @@ export class EditLockService {
     return this.http.get(`${this.baseUrl}/${entity}/${id}`, {
       responseType: "text",
     });
+  }
+
+  /** heartbeat */
+  touch(entity: string, id: number): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${entity}/${id}/touch`, {});
   }
 }
