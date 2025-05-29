@@ -37,7 +37,7 @@ export abstract class EditLockAwareComponent implements OnInit, OnDestroy {
               .subscribe((lockResult) => {
                 if (lockResult) {
                   // Received username of current editor (409)
-                  this.editingBy = lockResult;
+                  this.editingBy = lockResult.editingBy;
                 } else {
                   // Lock acquired
                   this.editingBy = this.currentUsername;

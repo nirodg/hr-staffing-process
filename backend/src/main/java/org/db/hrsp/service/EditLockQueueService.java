@@ -46,9 +46,25 @@ public class EditLockQueueService {
 
     @Transactional
     public void releaseLock(String entity, Long entityId, String username, Long userId) {
+        // Delete current holder
         editLockQueueRepository.deleteByEntityAndEntityIdAndUsername(entity, entityId, username);
-        // Publish UNLOCK event
-        KafkaPayload payload = KafkaPayload.builder()
+
+        // Promote next in line (if any) *inside the same TX*
+        editLockQueueRepository.findByEntityAndEntityIdOrderByRequestedAtAsc(entity, entityId)
+                .stream()
+                .findFirst()
+                .ifPresent(next -> {
+                    KafkaPayload payload = KafkaPayload.builder()
+                            .entity(entity)
+                            .entityId(entityId)
+                            .username(next.getUsername())
+                            .action(KafkaPayload.Action.LOCK)   // promote!
+                            .topic(KafkaPayload.Topic.EDIT_LOCKS)
+                            .build();
+                    editLockProducer.publishLock(payload);
+                });
+        // Notify UNLOCK for the one that just left
+        KafkaPayload unlocked = KafkaPayload.builder()
                 .entity(entity)
                 .entityId(entityId)
                 .userId(String.valueOf(userId))
@@ -56,7 +72,9 @@ public class EditLockQueueService {
                 .action(KafkaPayload.Action.UNLOCK)
                 .topic(KafkaPayload.Topic.EDIT_LOCKS)
                 .build();
-        editLockProducer.publishLock(payload);
+
+        // Send the UNLOCK event
+        editLockProducer.publishLock(unlocked);
     }
 
     public Optional<String> getCurrentEditor(String entity, Long entityId) {
