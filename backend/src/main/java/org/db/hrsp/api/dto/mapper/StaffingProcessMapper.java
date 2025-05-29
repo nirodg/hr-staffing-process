@@ -6,10 +6,8 @@ import org.mapstruct.Mapper;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
-public interface StaffingProcessMapper {
-    StaffingProcess toEntity(StaffingProcessDTO dto);
-    StaffingProcessDTO toDto(StaffingProcess entity);
 
-    List<StaffingProcessDTO> toDtos(Iterable<StaffingProcess> all);
+@Mapper(componentModel = "spring")
+public abstract class StaffingProcessMapper extends AbstractMapper<StaffingProcess, StaffingProcessDTO> {
+    public abstract List<StaffingProcessDTO> toDtos(Iterable<StaffingProcess> all);
 }

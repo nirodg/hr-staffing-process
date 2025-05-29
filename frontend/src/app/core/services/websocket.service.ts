@@ -4,12 +4,15 @@ import SockJS from "sockjs-client/dist/sockjs";
 import { Subject } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { KeycloakAuthService } from "./keycloak-auth.service";
+import { RefreshService } from "./refresh.service";
 
 @Injectable({ providedIn: "root" })
 export class WebSocketService {
   private stompClient!: Client;
   private messageSubject = new Subject<any>();
   private auth = inject(KeycloakAuthService);
+
+  constructor(private refresh: RefreshService) {}
 
   connect(): void {
     const headers: { [key: string]: string } = {};
@@ -34,9 +37,8 @@ export class WebSocketService {
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
-      debug: (str) => console.log("STOMP:", str),
+      // debug: (str) => console.log("STOMP:", str),
       beforeConnect: () => {
-        console.log("Attempting connection...");
         return new Promise<void>((resolve) => {
           if (this.auth.isAuthenticated()) {
             resolve();
@@ -49,7 +51,8 @@ export class WebSocketService {
 
     this.stompClient.onConnect = () => {
       this.stompClient.subscribe("/backend-updates", (message: any) => {
-        this.messageSubject.next(JSON.parse(message.body));
+        const payload = JSON.parse(message.body);
+        this.messageSubject.next(payload);
       });
     };
 

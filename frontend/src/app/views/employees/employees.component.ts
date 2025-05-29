@@ -10,7 +10,12 @@ import { EmployeeService } from "src/app/core/services/employee.service";
 import { UserFormComponent } from "src/app/shared/user-form/user-form.component";
 import { StatusBadgeComponent } from "../../shared/status-badge-component/status-badge-component.component";
 import { RefreshService } from "src/app/core/services/refresh.service";
-import {getRoleFromEnum} from "../../core/constants/role-map"
+import { getRoleFromEnum } from "../../core/constants/role-map";
+import { Router } from "@angular/router";
+import { User } from "src/stories/user";
+import { EditEmployeeDialogComponent } from "src/app/shared/edit-employee-dialog/edit-employee-dialog.component";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { KeycloakAuthService } from "src/app/core/services/keycloak-auth.service";
 
 @Component({
   selector: "app-employees",
@@ -44,6 +49,7 @@ import {getRoleFromEnum} from "../../core/constants/role-map"
               <th class="px-4 py-3 text-left">Role</th>
               <th class="px-4 py-3 text-left">Position</th>
               <th class="px-4 py-3 text-left">Status</th>
+              <th class="px-4 py-3 text-left">Actions</th>
             </tr>
           </thead>
           <tbody class="text-sm font-normal">
@@ -56,13 +62,20 @@ import {getRoleFromEnum} from "../../core/constants/role-map"
                 />
                 <div>
                   <div class="font-semibold">
-                    {{ e.lastName }} {{ e.firstName }}
+                    <a
+                      (click)="openEmployeeProfile(e.username)"
+                      style="cursor: pointer"
+                      class="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                    >
+                      {{ e.lastName }} {{ e.firstName }}</a
+                    >
                   </div>
                   <div class="text-xs text-blue-600">{{ e.role }}</div>
                 </div>
               </td>
               <td class="px-4 py-3">{{ e.email }}</td>
               <td class="px-4 py-3">{{ this.getRole(e.roles) }}</td>
+
               <td class="px-4 py-3">{{ e.position }}</td>
               <td class="px-4 py-3">
                 <div class="flex items-center">
@@ -76,6 +89,9 @@ import {getRoleFromEnum} from "../../core/constants/role-map"
 
                   {{ e.available === true ? "Active" : "Disabled" }}
                 </div>
+              </td>
+              <td class="px-4 py-3">
+                <button mat-button (click)="openEditDialog(e)">✏️ Edit</button>
               </td>
             </tr>
           </tbody>
@@ -94,7 +110,11 @@ export class EmployeesComponent {
 
   constructor(
     private employeeService: EmployeeService,
-    private refreshService: RefreshService
+    private router: Router,
+    private refreshService: RefreshService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
+    private auth: KeycloakAuthService
   ) {}
 
   ngOnInit() {
@@ -113,5 +133,37 @@ export class EmployeesComponent {
 
   getRole(role: string): string {
     return getRoleFromEnum(role);
+  }
+
+  openEmployeeProfile(username: string) {
+    this.router.navigate(["/users", username]);
+  }
+
+  openEditDialog(employee: UserDTO): void {
+    this.dialog
+      .open(EditEmployeeDialogComponent, {
+        width: "600px",
+        data: employee,
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.employeeService
+            .updateEmployee(employee.id, result)
+            .subscribe((data) => {
+              this.snackBar.open("Employee updated ✅", "Close", {
+                duration: 3000,
+                panelClass: ["bg-green-600", "text-white"],
+              });
+
+              if (this.auth.getUsername() == employee.username) {
+                // triggers topbar update
+                this.auth.setUserProfile(data);
+              }
+
+              this.loadData();
+            });
+        }
+      });
   }
 }

@@ -24,6 +24,11 @@ import { StaffingProcessDialogComponentComponent } from './staffing-process-dial
 import { ProfileComponent } from './shared/user-form/user-form.component';
 import { AddStaffingProcessComponentComponent } from './components/add-staffing-process-component/add-staffing-process-component.component';
 import { AddClientComponentComponent } from './components/add-client-component/add-client-component.component';
+import { UserProjectsComponent } from './user-projects/user-projects.component';
+import { ClientDetailComponent } from './views/client-detail/client-detail.component';
+import { EditClientDialogComponent } from './shared/edit-clien-dialog/edit-client-dialog.component';
+import { EditEmployeeDialogComponent } from './shared/edit-employee-dialog/edit-employee-dialog.component';
+import { EditLockAwareComponent } from './components/edit-lock-aware/edit-lock-aware.component';
 
 @Injectable({ providedIn: 'root' })
 export class TranslocoHttpLoader implements TranslocoLoader {
@@ -63,7 +68,12 @@ export class TranslocoHttpLoader implements TranslocoLoader {
     StaffingProcessDialogComponentComponent,
     ProfileComponent,
     AddStaffingProcessComponentComponent,
-    AddClientComponentComponent
+    AddClientComponentComponent,
+    UserProjectsComponent,
+    ClientDetailComponent,
+    EditClientDialogComponent,
+    EditEmployeeDialogComponent,
+    EditLockAwareComponent
   ],
 })
 export class TranslocoRootModule {}

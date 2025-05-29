@@ -10,12 +10,18 @@ import {
   MatDialogModule,
   MAT_DIALOG_DATA,
 } from "@angular/material/dialog";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 
 import { UserService } from "../../core/services/user.service";
 import { EmployeeService } from "../../core/services/employee.service";
 import { UserDTO } from "../../core/models/user-dto.model";
-import { Location } from '@angular/common';
+import { Location } from "@angular/common";
+import { UserProjectsComponent } from "src/app/user-projects/user-projects.component";
+import { Observable } from "rxjs";
+import { MatDialog } from "@angular/material/dialog";
+import { EditClientDialogComponent } from "src/app/shared/edit-clien-dialog/edit-client-dialog.component";
+import { EditEmployeeDialogComponent } from "../edit-employee-dialog/edit-employee-dialog.component";
+import { KeycloakAuthService } from "src/app/core/services/keycloak-auth.service";
 
 @Component({
   selector: "app-user-form",
@@ -27,18 +33,28 @@ import { Location } from '@angular/common';
     MatInputModule,
     MatCheckboxModule,
     MatButtonModule,
+    UserProjectsComponent,
   ],
   template: `
     <div
       *ngIf="form"
       class="max-w-2xl mx-auto mt-6 bg-white shadow rounded-xl p-6 space-y-6"
     >
-    <button
-            class="px-4 py-2 text-sm rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
-            (click)="goBack()"
-          >
-            ← Go Back
-          </button>
+      <div class="row flex">
+        <button
+          class="rounded-md rounded-r-none px-4 py-2 text-sm rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
+          (click)="goBack()"
+        >
+          ← Go Back
+        </button>
+        <button
+          class="rounded-md rounded-l-none px-4 py-2 text-sm rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
+          (click)="openEditProfileDialog()"
+        >
+          ✏️ Edit Profile
+        </button>
+      </div>
+
       <h2 class="text-xl font-semibold text-gray-800 dark:text-black">
         {{ title }}
       </h2>
@@ -78,6 +94,8 @@ import { Location } from '@angular/common';
         <button mat-button color="warn" type="button" (click)="delete()">Delete Profile</button> -->
         </div>
       </form>
+
+      <app-user-projects [username]="username"></app-user-projects>
     </div>
   `,
 })
@@ -85,13 +103,18 @@ export class UserFormComponent implements OnInit {
   @Input() mode: "profile" | "create" = "profile";
   form!: FormGroup;
   title = "";
+  username: string = "";
+  user: UserDTO;
 
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
     private employeeService: EmployeeService,
     private router: Router,
+    private route: ActivatedRoute,
     private location: Location,
+    private dialog: MatDialog,
+    private auth: KeycloakAuthService,
     @Optional() private dialogRef?: MatDialogRef<UserFormComponent>,
     @Optional()
     @Inject(MAT_DIALOG_DATA)
@@ -100,13 +123,27 @@ export class UserFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.mode = this.data?.mode ?? "profile";
-    this.title =
-      this.mode === "profile" ? "Your Profile" : "Add a New Employee";
 
-    if (this.mode === "profile") {
-      this.userService.getMyProfile().subscribe((user) => this.buildForm(user));
+    this.username = this.route.snapshot.paramMap.get("username");
+
+    if (this.username) {
+      this.userService.getByUsername(this.username).subscribe((data) => {
+        this.user = data;
+        this.buildForm(this.user);
+        this.title = `${this.user.firstName}'s profile`;
+      });
     } else {
-      this.buildForm(); // empty form for creation
+      this.title =
+        this.mode === "profile" ? "Your Profile" : "Add a New Employee";
+
+      if (this.mode === "profile") {
+        this.userService.getMyProfile().subscribe((user) => {
+          this.user = user;
+          this.buildForm(user);
+        });
+      } else {
+        this.buildForm(); // empty form for creation
+      }
     }
   }
 
@@ -115,11 +152,42 @@ export class UserFormComponent implements OnInit {
       username: [
         { value: user?.username ?? "", disabled: this.mode === "profile" },
       ],
-      firstName: [{ value: user?.firstName ?? "", disabled: this.mode === "profile" }],
-      lastName: [{ value: user?.lastName ?? "", disabled: this.mode === "profile" }],
+      firstName: [
+        { value: user?.firstName ?? "", disabled: this.mode === "profile" },
+      ],
+      lastName: [
+        { value: user?.lastName ?? "", disabled: this.mode === "profile" },
+      ],
       email: [{ value: user?.email ?? "", disabled: this.mode === "profile" }],
-      position: [{ value: user?.position ?? "", disabled: this.mode === "profile" }],
-      available: [{value: user?.available ?? "", disabled: this.mode === "profile"}],
+      position: [
+        { value: user?.position ?? "", disabled: this.mode === "profile" },
+      ],
+      available: [
+        { value: user?.available ?? "", disabled: this.mode === "profile" },
+      ],
+    });
+  }
+
+  openEditProfileDialog(): void {
+    this.userService.getMyProfile().subscribe((user) => {
+      console.log(this.user)
+      this.dialog
+        .open(EditEmployeeDialogComponent, {
+          width: "600px",
+          data: this.user,
+        })
+        .afterClosed()
+        .subscribe((result) => {
+          if (result) {
+            this.userService.updateMyProfile(result).subscribe(() => {
+              this.userService.getMyProfile().subscribe((user) => {
+                this.user = user;
+                this.buildForm(user);
+                this.auth.setUserProfile(user); // triggers topbar update
+              });
+            });
+          }
+        });
     });
   }
 

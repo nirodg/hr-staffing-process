@@ -37,6 +37,15 @@ export const routes: Routes = [
         data: { requiredRole: "client_public_admin" },
       },
       {
+        path: "clients/:clientId",
+        loadComponent: () =>
+          import("./views/client-detail/client-detail.component").then(
+            (m) => m.ClientDetailComponent
+          ),
+        canActivate: [RoleGuard],
+        data: { requiredRole: "client_public_admin" },
+      },
+      {
         path: "employees",
         loadComponent: () =>
           import("./views/employees/employees.component").then(
@@ -45,13 +54,19 @@ export const routes: Routes = [
         canActivate: [RoleGuard],
         data: { requiredRole: "client_public_admin" },
       },
-
       {
         path: "profile",
         loadComponent: () =>
           import("./shared/user-form/user-form.component").then(
             (m) => m.UserFormComponent
-          )
+          ),
+      },
+      {
+        path: "users/:username",
+        loadComponent: () =>
+          import("./shared/user-form/user-form.component").then(
+            (m) => m.UserFormComponent
+          ),
       },
     ],
     canActivate: [LoggedInGuard],

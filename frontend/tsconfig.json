@@ -9,12 +9,19 @@
     "esModuleInterop": true,
     "module": "es2020",
     "moduleResolution": "node",
-    "types": ["keycloak-js"],
-    "skipLibCheck": true,    // ✅ this suppresses Keycloak typing issues
+    "types": [
+      "keycloak-js"
+    ],
+    "skipLibCheck": true,
     "importHelpers": true,
     "target": "ES2022",
-    "lib": ["es2020", "dom"],
-    "useDefineForClassFields": false
+    "lib": [
+      "es2020",
+      "dom",
+      "esnext.asynciterable"
+    ],
+    "useDefineForClassFields": false,
+    "allowSyntheticDefaultImports": true
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,

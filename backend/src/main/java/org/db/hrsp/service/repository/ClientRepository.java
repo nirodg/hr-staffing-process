@@ -6,4 +6,5 @@ import org.springframework.data.repository.CrudRepository;
 
 @LogMethodExecution
 public interface ClientRepository extends CrudRepository<Client, Long> {
+    boolean existsByClientNameIgnoreCase(String clientName);
 }

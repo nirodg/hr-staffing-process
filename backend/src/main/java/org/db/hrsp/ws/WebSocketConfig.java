@@ -1,6 +1,7 @@
-package org.db.hrsp.kafka;
+package org.db.hrsp.ws;
 
 import lombok.RequiredArgsConstructor;
+import org.db.hrsp.kafka.StompHandshakeInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;

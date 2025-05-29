@@ -1,0 +1,33 @@
+direction: right
+
+User: "User\n(Web/Mobile)"
+PortForward: "Port-Forward Tunnel\n(kubectl port-forward)"
+Frontend: "Frontend\n(Angular App)"
+Backend: "Backend\n(Spring Boot - API Facade)"
+Database: "MySQL Database"
+Kafka: "Kafka Broker"
+Jaeger: "Jaeger\n(Tracing)"
+Loki: "Loki\n(Logging)"
+Grafana: "Grafana\n(Dashboard)"
+KafkaUi: "Kafka UI"
+Mail: "Email inbox"
+Keycloak: "Keycloak"
+
+User -> PortForward: "Access via kubectl port-forward"
+PortForward -> Frontend: "HTTP Proxy"
+PortForward -> Backend
+PortForward -> Grafana
+KafkaUi -> Kafka
+
+Frontend -> Backend: "REST API Calls"
+Backend -> Database: "JDBC"
+Backend -> Kafka: "Publish/Consume Events"
+Backend -> Jaeger: "Tracing Data"
+Backend -> Loki: "Application Logs"
+Backend -> Frontend: "WebSocket Events & API responses"
+Loki -> Grafana: "Logs Visualization"
+Frontend -> Keycloak: "Requets token"
+Backend -> Keycloak: "Verifies User"
+Keycloak -> Mail: "Verify email account"
+PortForward -> Jaeger
+PortForward -> KafkaUi

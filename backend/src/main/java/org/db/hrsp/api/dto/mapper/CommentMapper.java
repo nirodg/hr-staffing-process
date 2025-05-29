@@ -7,9 +7,6 @@ import org.mapstruct.Mapper;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
-public interface CommentMapper {
-    Comment toEntity(CommentDTO dto);
-    CommentDTO toDto(Comment entity);
-
-    List<CommentDTO> toDtos(Iterable<Comment> comments);
+public abstract class CommentMapper extends AbstractMapper<Comment, CommentDTO> {
+    public abstract List<CommentDTO> toDtos(Iterable<Comment> comments);
 }

@@ -1,17 +1,22 @@
 package org.db.hrsp.api.controller;
 
-import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
+import java.util.List;
+
 import org.db.hrsp.api.dto.ClientDTO;
 import org.db.hrsp.common.LogMethodExecution;
 import org.db.hrsp.service.ClientService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 
-@Controller
+@RestController
 @RequestMapping("/api/clients")
 @AllArgsConstructor
 @LogMethodExecution
@@ -19,20 +24,19 @@ public class ClientController {
 
     private final ClientService clientService;
 
-    @Transactional
     @PostMapping()
-    public ResponseEntity<ClientDTO> addClient(@RequestBody ClientDTO client) {
-        return ResponseEntity.ok(clientService.createClient(client));
+    public ClientDTO addClient(@RequestBody ClientDTO client) {
+        return clientService.create(client);
     }
 
     @GetMapping("/{clientId}")
-    public ResponseEntity<ClientDTO> getClient(@PathVariable("clientId") Long clientId) {
-        return clientService.findById(clientId);
+    public ClientDTO getClient(@PathVariable("clientId") Long clientId) throws Throwable {
+        return clientService.getById(clientId);
     }
 
     @GetMapping()
-    public ResponseEntity<List<ClientDTO>> getAllClients() {
-        return clientService.findAll();
+    public List<ClientDTO> getAllClients() {
+        return clientService.getAll();
     }
 
 }

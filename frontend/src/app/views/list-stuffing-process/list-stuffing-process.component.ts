@@ -28,8 +28,8 @@ import { RefreshService } from "src/app/core/services/refresh.service";
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    StatusBadgeComponent
-],
+    StatusBadgeComponent,
+  ],
   template: `
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-bold mb-4">Staffing Process List</h2>
@@ -44,52 +44,70 @@ import { RefreshService } from "src/app/core/services/refresh.service";
     </div>
 
     <div class="bg-gray-100 rounded-xl shadow p-6 font-jakarta text-gray-800">
-
-  <div class="overflow-x-auto">
-    <table class="w-full table-auto border-collapse">
-      <thead class="bg-gray-50 border-b text-sm font-semibold text-gray-600">
-        <tr>
-          <th class="px-4 py-3 text-left">Title</th>
-          <th class="px-4 py-3 text-left">Client</th>
-          <th class="px-4 py-3 text-left">Employee</th>
-          <th class="px-4 py-3 text-left">Status</th>
-          <th class="px-4 py-3 text-left">Action</th>
-        </tr>
-      </thead>
-      <tbody class="text-sm font-normal">
-        <tr *ngFor="let row of dataSource" class="hover:bg-gray-100 border-b">
-          <td class="px-4 py-3">{{ row.title }}</td>
-          <td class="px-4 py-3">{{ row.client.clientName }}</td>
-          <td class="px-4 py-3">{{ row.employee.lastName }} {{ row.employee.firstName }}</td>
-          <td>
-            <app-status-badge [isActive]="!row.active" />
-          </td>
-          <td class="px-4 py-3 text-right">
-            <button mat-button (click)="seeComments(row)">
-                <mat-icon>info</mat-icon>
-                Details
-            </button>            
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-
+      <div class="overflow-x-auto">
+        <table class="w-full table-auto border-collapse">
+          <thead
+            class="bg-gray-50 border-b text-sm font-semibold text-gray-600"
+          >
+            <tr>
+              <th class="px-4 py-3 text-left">Title</th>
+              <th class="px-4 py-3 text-left">Client</th>
+              <th class="px-4 py-3 text-left">Employee</th>
+              <th class="px-4 py-3 text-left">Status</th>
+              <th class="px-4 py-3 text-left">Action</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm font-normal">
+            <tr
+              *ngFor="let row of dataSource"
+              class="hover:bg-gray-100 border-b"
+            >
+              <td class="px-4 py-3">{{ row.title }}</td>
+              <td class="px-4 py-3">
+                <a
+                  (click)="openClient(row.client.id)"
+                  class="text-blue-600"
+                  style="cursor: pointer"
+                >
+                  {{ row.client.clientName }}
+                </a>
+              </td>
+              <td class="px-4 py-3">
+                <a
+                  (click)="openEmployeeProfile(row.employee.username)"
+                  class="text-blue-600"
+                  style="cursor: pointer"
+                >
+                  {{ row.employee.lastName }} {{ row.employee.firstName }}
+                </a>
+              </td>
+              <td>
+                <app-status-badge [isActive]="!row.active" />
+              </td>
+              <td class="px-4 py-3 text-right">
+                <button mat-button (click)="seeComments(row)">
+                  <mat-icon>info</mat-icon>
+                  Details
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   `,
 })
 export class ListStaffingProcessComponent implements OnInit {
   private http = inject(HttpClient);
   private dialog = inject(MatDialog);
   private auth = inject(KeycloakAuthService);
-  
+
   constructor(
     private clientService: ClientService,
     private employeeService: EmployeeService,
     private staffingService: StaffingService,
     private refreshService: RefreshService,
-    private router : Router
+    private router: Router
   ) {}
 
   dataSource: StaffingProcessDTO[] = [];
@@ -103,54 +121,29 @@ export class ListStaffingProcessComponent implements OnInit {
   }
 
   loadData(): void {
-
-    this.staffingService.getAll().subscribe(processes => {
+    this.staffingService.getAll().subscribe((processes) => {
       this.dataSource = processes;
     });
-
   }
-
-  // edit(row: StaffingProcess) {
-  // const ref = this.dialog.open(FormDialogComponent, {
-  //   data: { title: "Edit Staffing", initialValue: row.client },
-  // });
-
-  // ref.componentInstance.title = "Edit Staffing";
-  // ref.componentInstance.initialValue = row.client;
-
-  // ref.componentInstance.save.subscribe((newValue: string) => {
-  //   console.log('✅ Edited:', newValue);
-  //   this.dataSource[index].client = newValue;
-  //   this.dataSource = [...this.dataSource]; // refresh table
-  // });
-  // }
-
-  // confirmDelete(index: number) {
-  //   const ref = this.dialog.open(ConfirmDialogComponent);
-
-  //   ref.afterClosed().subscribe((result) => {
-  //     if (result) {
-  //       this.dataSource.splice(index, 1);
-  //       this.dataSource = [...this.dataSource];
-  //       console.log("🗑️ Deleted entry at index", index);
-  //     }
-  //   });
-  // }
 
   addEntry(newItem: StaffingProcessDTO) {
     this.dataSource = [...this.dataSource, newItem];
   }
 
   async openAddDialog(): Promise<void> {
-    const { AddStaffingProcessComponent } = await import('../../components/add-staffing-process-component/add-staffing-process-component.component');
-    const dialogRef = this.dialog.open(AddStaffingProcessComponent, { width: '600px' });
+    const { AddStaffingProcessComponent } = await import(
+      "../../components/add-staffing-process-component/add-staffing-process-component.component"
+    );
+    const dialogRef = this.dialog.open(AddStaffingProcessComponent, {
+      width: "600px",
+    });
 
     dialogRef.afterClosed().subscribe((refreshNeeded) => {
       if (refreshNeeded) {
         this.loadData(); // reload from backend
       }
     });
-  }  
+  }
 
   getStatus(isActive: boolean) {
     return getStatusFromActive(isActive);
@@ -172,9 +165,16 @@ export class ListStaffingProcessComponent implements OnInit {
 
   onMarkComplete(id: number) {
     this.staffingService.markAsCompleted(id).subscribe(() => {
-      this.dataSource = this.dataSource.map(p =>
+      this.dataSource = this.dataSource.map((p) =>
         p.id === id ? { ...p, isActive: true } : p
       );
     });
+  }
+
+  openEmployeeProfile(username: string): void {
+    this.router.navigate(["/users", username]);
+  }
+  openClient(id: string) {
+    this.router.navigate(["/clients", id]);
   }
 }

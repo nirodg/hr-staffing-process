@@ -2,6 +2,7 @@ export enum KafkaTopic {
     STAFFING_PROCESS = 'STAFFING_PROCESS',
     CLIENTS = 'CLIENTS',
     EMPLOYEES = 'EMPLOYEES',
-    COMMENTS = 'COMMENTS'
+    COMMENTS = 'COMMENTS',
+    EDIT_LOCKS = "EDIT_LOCKS"
   }
   

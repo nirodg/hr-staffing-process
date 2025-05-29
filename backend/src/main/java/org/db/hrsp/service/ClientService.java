@@ -1,7 +1,13 @@
 package org.db.hrsp.service;
 
 import lombok.AllArgsConstructor;
-import org.db.hrsp.api.config.ApiException;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.db.hrsp.api.common.ConflictException;
+import org.db.hrsp.api.common.NotFoundException;
+import org.db.hrsp.api.common.UnexpectedException;
+import org.db.hrsp.api.common.UpstreamFailureException;
 import org.db.hrsp.api.config.security.JwtInterceptor;
 import org.db.hrsp.api.dto.ClientDTO;
 import org.db.hrsp.api.dto.mapper.ClientMapper;
@@ -10,6 +16,8 @@ import org.db.hrsp.kafka.model.KafkaPayload;
 import org.db.hrsp.kafka.producers.PersistEventProducer;
 import org.db.hrsp.service.repository.ClientRepository;
 import org.db.hrsp.service.repository.model.Client;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -18,44 +26,45 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
-@AllArgsConstructor
 @LogMethodExecution
-public class ClientService {
+@RequiredArgsConstructor
+public class ClientService extends AbstractService<Client, ClientDTO, ClientRepository, ClientMapper> {
+
     private final ClientRepository clientRepository;
-    private final ClientMapper clientMapper;
 
     private final PersistEventProducer eventProducer;
     private final JwtInterceptor jwtInterceptor;
 
-    @Transactional
-    public ClientDTO createClient(ClientDTO client) {
+    @Override
+    public ClientDTO create(ClientDTO dto) {
 
-        Client entity = clientRepository.save(clientMapper.toEntity(client));
+        // optimistic Java-side uniqueness check
+        if (clientRepository.existsByClientNameIgnoreCase(dto.getClientName())) {
+            throw new ConflictException("Client '%s' already exists".formatted(dto.getClientName()));
+        }
+        ClientDTO responseDto = super.create(dto);
 
+        publishEvent(responseDto.getId(), KafkaPayload.Action.CREATE);
+        log.info("Client created: {}", responseDto.getId());
+
+        return responseDto;
+    }
+
+    /* ───────────────────────────  HELPERS  ───────────────────────── */
+
+    private void publishEvent(Long id, KafkaPayload.Action action) {
         try {
-            eventProducer.publishEvent(KafkaPayload.builder()
-                    .entityId(client.getId())
-                    .topic(KafkaPayload.Topic.CLIENTS)
-                    .action(KafkaPayload.Action.CREATE)
-                    .userId(jwtInterceptor.getCurrentUser().getUsername()).build());
-        } catch (RuntimeException re) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, null, "Failed to send message to Kafka");
+            eventProducer.publishEvent(
+                    KafkaPayload.builder()
+                            .action(action)
+                            .userId(jwtInterceptor.getCurrentUser().getUsername())
+                            .topic(KafkaPayload.Topic.CLIENTS)
+                            .entityId(id)
+                            .build());
+        } catch (RuntimeException ex) {
+            throw new UpstreamFailureException("Failed to publish Kafka message");
         }
-
-        return clientMapper.toDto(entity);
-    }
-
-    public ResponseEntity<ClientDTO> findById(Long clientId) {
-        Optional<Client> entity = clientRepository.findById(clientId);
-        return entity.map(value -> ResponseEntity.ok(clientMapper.toDto(value))).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-    }
-
-    public ResponseEntity<List<ClientDTO>> findAll() {
-        Iterable<Client> list = clientRepository.findAll();
-        if (!list.iterator().hasNext()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(clientMapper.toDtos(list));
     }
 }

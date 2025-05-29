@@ -1,0 +1,112 @@
+enum Role {
+  CLIENT_PUBLIC_ADMIN,
+  CLIENT_PUBLIC_USER
+}
+
+type Client {
+  id: ID!
+  clientName: String
+  clientEmail: String
+  contactPersonName: String
+  contactPersonEmail: String
+  contactPersonPhone: String
+  staffingProcesses: [StaffingProcess]
+  createdAt: String
+  updatedAt: String
+}
+
+type Comment {
+  id: ID!
+  title: String
+  comment: String
+  staffingProcess: StaffingProcess
+  author: User
+  commentParent: ID
+  createdAt: String
+  updatedAt: String
+}
+
+type Employee {
+  id: ID!
+  name: String
+  isAvailable: Boolean
+  staffingProcesses: [StaffingProcess]
+  createdAt: String
+  updatedAt: String
+}
+
+type StaffingProcess {
+  id: ID!
+  title: String
+  client: Client
+  employee: User
+  comments: [Comment]
+  isActive: Boolean
+  createdAt: String
+  updatedAt: String
+}
+
+type User {
+  id: ID!
+  username: String
+  firstName: String
+  lastName: String
+  email: String
+  roles: [Role]
+  position: String
+  available: Boolean
+  createdAt: String
+  updatedAt: String
+}
+
+
+type Query {
+  getClients: [Client]
+  getClient(id: ID!): Client
+
+  getEmployees: [Employee]
+  getEmployee(id: ID!): Employee
+
+  getStaffingProcesses: [StaffingProcess]
+  getStaffingProcess(id: ID!): StaffingProcess
+
+  getComments: [Comment]
+  getComment(id: ID!): Comment
+
+  getUsers: [User]
+  getUser(id: ID!): User
+
+  staffingProcessesByEmployee(username: String!, page: Int, size: Int): [StaffingProcess]
+  staffingProcessesByClient(clientId: Int!, page: Int, size: Int): [StaffingProcess]
+
+  countRoles(role: String!): Int!
+  countAdmins: Int!
+}
+
+type Mutation {
+  addClient(clientName: String!, clientEmail: String!): Client
+  addEmployee(name: String!): Employee
+  addComment(title: String!, comment: String!, staffingProcessId: ID!): Comment
+  addStaffingProcess(title: String!, clientId: ID!, employeeId: ID!): StaffingProcess
+  updateProcessTitle(id: Int!, newTitle: String!): StaffingProcess
+  updateClient(id: Int!, input: ClientInput!): Client
+  updateUserInfo(id: Int!, input: UserDTOInput! ): User
+}
+
+input ClientInput {
+  clientName: String
+  clientEmail: String
+  contactPersonName: String
+  contactPersonEmail: String
+  contactPersonPhone: String
+}
+
+input UserDTOInput {
+  name: String
+  available: Boolean
+  roles: [Role]
+  position: String
+  email: String
+  firstName: String
+  lastName: String
+}

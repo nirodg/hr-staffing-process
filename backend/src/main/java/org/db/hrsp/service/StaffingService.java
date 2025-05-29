@@ -1,8 +1,10 @@
 package org.db.hrsp.service;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.db.hrsp.api.config.ApiException;
+import org.db.hrsp.api.common.NotFoundException;
+import org.db.hrsp.api.common.UpstreamFailureException;
 import org.db.hrsp.api.config.security.JwtInterceptor;
 import org.db.hrsp.api.dto.StaffingProcessDTO;
 import org.db.hrsp.api.dto.mapper.StaffingProcessMapper;
@@ -10,17 +12,19 @@ import org.db.hrsp.common.LogMethodExecution;
 import org.db.hrsp.kafka.model.KafkaPayload;
 import org.db.hrsp.kafka.producers.PersistEventProducer;
 import org.db.hrsp.service.repository.ClientRepository;
+import org.db.hrsp.service.repository.CommentRepository;
 import org.db.hrsp.service.repository.StaffingProcessRepository;
 import org.db.hrsp.service.repository.UserRepository;
 import org.db.hrsp.service.repository.model.Client;
+import org.db.hrsp.service.repository.model.Comment;
 import org.db.hrsp.service.repository.model.StaffingProcess;
 import org.db.hrsp.service.repository.model.User;
 import org.springframework.data.crossstore.ChangeSetPersister;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -32,40 +36,90 @@ public class StaffingService {
     private final ClientRepository clientRepository;
     private final UserRepository userRepository;
     private final StaffingProcessMapper staffingProcessMapper;
+    private final CommentRepository commentRepository;
 
     private final PersistEventProducer eventProducer;
     private final JwtInterceptor jwtInterceptor;
 
-    public StaffingProcessDTO createStaffingProcess(Long clientID, Long employeeId, String title) {
-        StaffingProcess staffingProcess = new StaffingProcess();
-        Client client = clientRepository.findById(clientID).orElseThrow();
-        User employee = userRepository.findById(employeeId).orElseThrow();
+    @Transactional
+    public StaffingProcessDTO createStaffingProcess(Long clientId, Long employeeId, String title) {
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new NotFoundException("Client %d not found".formatted(clientId)));
+        User employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new NotFoundException("User %d not found".formatted(employeeId)));
 
-        staffingProcess.setClient(client);
-        staffingProcess.setEmployee(employee);
-        staffingProcess.setTitle(title);
-        staffingProcess.setActive(true);
+        StaffingProcess staffingProcess = StaffingProcess.builder()
+                .client(client)
+                .employee(employee)
+                .title(title)
+                .isActive(true)
+                .build();
+
         staffingProcessRepository.save(staffingProcess);
         log.info("Staffing Process created successfully with ID: {}", staffingProcess.getId());
 
-        updateEmployeeAndClientStaffingProcesses(employee, client, staffingProcess);
-
-        try {
-            eventProducer.publishEvent(
-                    KafkaPayload.builder()
-                            .action(KafkaPayload.Action.CREATE)
-                            .userId(jwtInterceptor.getCurrentUser().getUsername())
-                            .topic(KafkaPayload.Topic.STAFFING_PROCESS)
-                            .build()
-            );
-        } catch (RuntimeException re) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, null, "Failed to send message to Kafka");
-        }
+        updateBackrefs(employee, client, staffingProcess);
+        publish(KafkaPayload.Action.CREATE);
 
         return staffingProcessMapper.toDto(staffingProcess);
     }
 
-    private void updateEmployeeAndClientStaffingProcesses(User employee, Client client, StaffingProcess staffingProcess) {
+    public StaffingProcessDTO getStaffingProcess(Long id) {
+        return staffingProcessRepository.findById(id)
+                .map(staffingProcessMapper::toDto)
+                .orElseThrow(() -> new NotFoundException("Staffing process %d not found".formatted(id)));
+    }
+
+    public List<StaffingProcessDTO> getAllStaffingProcesses() {
+        return staffingProcessMapper.toDtos(staffingProcessRepository.findAll());
+    }
+
+    @Transactional
+    public StaffingProcessDTO updateStaffingProcess(StaffingProcessDTO dto) {
+        StaffingProcess staffingProcessToUpdate = staffingProcessRepository.findById(dto.getId())
+                .orElseThrow(() -> new NotFoundException("Staffing process %d not found".formatted(dto.getId())));
+
+        staffingProcessToUpdate.setActive(dto.isActive());
+        staffingProcessToUpdate.setTitle(dto.getTitle());
+        staffingProcessToUpdate = staffingProcessRepository.save(staffingProcessToUpdate);
+
+        return staffingProcessMapper.toDto(staffingProcessToUpdate);
+    }
+
+    @Transactional
+    public void deleteStaffingProcessById(Long id) {
+        if (!staffingProcessRepository.existsById(id)) {
+            throw new NotFoundException("Staffing process %d not found".formatted(id));
+        }
+        log.info("Delete Staffing Process by ID: {}", id);
+        staffingProcessRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void setInactive(Long id) {
+        StaffingProcess process = staffingProcessRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Staffing process %d not found".formatted(id)));
+        process.setActive(false);
+
+        User user = jwtInterceptor.getCurrentUser();
+
+
+        // Add system comment
+        Comment systemComment = Comment.builder()
+                .title("Process completed")
+                .comment("User %s-%s has marked the process as completed.".formatted(user.getFirstName(), user.getLastName()))
+                .author(jwtInterceptor.getCurrentUser())
+                .staffingProcess(process)
+                .build();
+
+        commentRepository.save(systemComment);
+        staffingProcessRepository.save(process);
+
+        publish(KafkaPayload.Action.UPDATE);
+    }
+
+    // Helpers
+    private void updateBackrefs(User employee, Client client, StaffingProcess staffingProcess) {
         List<StaffingProcess> existingEmployeeStaffingProcesses = employee.getStaffingProcesses();
         existingEmployeeStaffingProcesses.add(staffingProcess);
         employee.setStaffingProcesses(existingEmployeeStaffingProcesses);
@@ -78,43 +132,35 @@ public class StaffingService {
         clientRepository.save(client);
     }
 
-    public StaffingProcessDTO getStaffingProcess(Long staffingProcessId) {
-        StaffingProcess process = staffingProcessRepository.findById(staffingProcessId).orElseThrow();
-        log.info("Staffing Process retrieved successfully with ID: {}", staffingProcessId);
-        return staffingProcessMapper.toDto(process);
+    private void publish(KafkaPayload.Action action) {
+        try {
+            eventProducer.publishEvent(
+                    KafkaPayload.builder()
+                            .action(action)
+                            .userId(jwtInterceptor.getCurrentUser().getUsername())
+                            .topic(KafkaPayload.Topic.STAFFING_PROCESS)
+                            .build());
+        } catch (RuntimeException ex) {
+            throw new UpstreamFailureException("Failed to publish Kafka event");
+        }
     }
 
-    public List<StaffingProcessDTO> getAllStaffingProcesses() {
-        return staffingProcessMapper.toDtos(staffingProcessRepository.findAll());
+    public List<StaffingProcessDTO> findByEmployeeId(String username, Pageable pageable) {
+        Optional<User> user = userRepository.findByUsername(username);
+        return user.map(value -> staffingProcessRepository.findByEmployeeId(value.getId(), pageable).stream().map(staffingProcessMapper::toDto).toList()).orElse(null);
     }
 
-    public StaffingProcessDTO updateStaffingProcess(StaffingProcessDTO staffingProcess) {
-        StaffingProcess staffingProcessToUpdate = staffingProcessRepository.findById(staffingProcess.getId()).orElseThrow();
-        staffingProcessToUpdate.setActive(staffingProcess.isActive());
-        staffingProcessToUpdate.setTitle(staffingProcess.getTitle());
-        staffingProcessToUpdate = staffingProcessRepository.save(staffingProcessToUpdate);
-
-        return staffingProcessMapper.toDto(staffingProcessToUpdate);
-    }
-
-    public void deleteStaffingProcessById(Long staffingProcessId) {
-        log.info("Delete Staffing Process by ID: {}", staffingProcessId);
-        staffingProcessRepository.deleteById(staffingProcessId);
+    public List<StaffingProcessDTO> findByClientId(Long clientId, Pageable pageable) {
+        List<StaffingProcess> list = staffingProcessRepository.findByClientId(clientId, pageable);
+        return list.stream().map(staffingProcessMapper::toDto).toList();
     }
 
     @Transactional
-    public void setInactive(Long id) throws ChangeSetPersister.NotFoundException {
-        StaffingProcess process = staffingProcessRepository.findById(id)
-                .orElseThrow(ChangeSetPersister.NotFoundException::new);
-        process.setActive(false);
-        staffingProcessRepository.save(process);
-
-        eventProducer.publishEvent(
-                KafkaPayload.builder()
-                        .action(KafkaPayload.Action.UPDATE)
-                        .userId(jwtInterceptor.getCurrentUser().getUsername())
-                        .topic(KafkaPayload.Topic.STAFFING_PROCESS)
-                        .build());
+    public StaffingProcessDTO updateTitle(Long processId, String newTitle) {
+        StaffingProcess process = staffingProcessRepository.findById(processId)
+                .orElseThrow(() -> new NotFoundException("Process not found"));
+        process.setTitle(newTitle);
+        return staffingProcessMapper.toDto(staffingProcessRepository.save(process));
     }
 
 }

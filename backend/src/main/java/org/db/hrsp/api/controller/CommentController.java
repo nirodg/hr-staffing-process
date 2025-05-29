@@ -4,44 +4,33 @@ import lombok.AllArgsConstructor;
 import org.db.hrsp.api.dto.CommentDTO;
 import org.db.hrsp.api.dto.mapper.CommentMapper;
 import org.db.hrsp.common.LogMethodExecution;
+import org.db.hrsp.service.CommentService;
 import org.db.hrsp.service.repository.CommentRepository;
 import org.db.hrsp.service.repository.model.Comment;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
 
-@Controller
+@RestController
 @RequestMapping("/api/comments")
 @AllArgsConstructor
 @LogMethodExecution
 public class CommentController {
 
-    private final CommentRepository service;
-    private final CommentMapper commentMapper;
+    private final CommentService service;
 
-
-    @GetMapping("/{commentId}")
-    public ResponseEntity<CommentDTO> getComment(@PathVariable("commentId") Long commentId) {
-        Optional<Comment> comment = service.findById(commentId);
-
-        return comment.get().getId() != null
-                ? ResponseEntity.ok(commentMapper.toDto(comment.get()))
-                : ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    @GetMapping("/{id}")
+    public CommentDTO getComment(@PathVariable("id") Long commentId) {
+        return service.getComment(commentId);
     }
 
     @GetMapping()
-    public ResponseEntity<List<CommentDTO>> getAllComments() {
-        Iterable<Comment> comments = service.findAll();
-        if (!comments.iterator().hasNext()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(commentMapper.toDtos(comments));
+    public List<CommentDTO> getAllComments() {
+        return service.getAllComments();
     }
 
 }

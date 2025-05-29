@@ -1,5 +1,8 @@
 package org.db.hrsp.services;
 
+import org.db.hrsp.api.config.RequestLoggingFilter;
+import org.db.hrsp.api.dto.UserDTO;
+import org.db.hrsp.api.dto.mapper.UserMapper;
 import org.db.hrsp.service.UserService;
 import org.db.hrsp.service.repository.model.User;
 import org.junit.jupiter.api.Test;
@@ -18,10 +21,16 @@ public class UserServiceTest {
     @Autowired
     UserService userService;
 
+    @Autowired
+    static UserMapper mapper;
+
+    @Autowired
+    RequestLoggingFilter requestLoggingFilter;
+
     @Test
     void save_without_concurrency() {
 
-        User user = userService.save(createUser());
+        UserDTO user = userService.create(createUser());
         assertEquals(0, user.getVersion());
 
         for (int i = 0; i < 2; i++) {
@@ -41,7 +50,7 @@ public class UserServiceTest {
 
         final int nrThreads = 2;
 
-        User user = userService.save(createUser());
+        UserDTO user = userService.create(createUser());
         assertEquals(0, user.getVersion());
 
         final ExecutorService executor = Executors.newFixedThreadPool(nrThreads);
@@ -53,13 +62,14 @@ public class UserServiceTest {
 
     }
 
-    private static User createUser() {
-        return User.builder()
+    private static UserDTO createUser() {
+        User user = User.builder()
                 .username("technicalUser")
                 .firstName("Technical")
                 .lastName("User")
                 .position("admin")
                 .available(true)
                 .build();
+        return mapper.toDto(user);
     }
 }

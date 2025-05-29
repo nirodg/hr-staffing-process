@@ -4,12 +4,17 @@ import { map, Observable, of } from "rxjs";
 import { environment } from "src/environments/environment";
 import { StaffingProcess } from "../models/staffing-process.model";
 import { StaffingProcessDTO } from "../models/staffing-process-dto.model";
+import { Apollo, gql } from "apollo-angular";
+import { ClientDTO } from "../models/client-dto.model";
 
 @Injectable({ providedIn: "root" })
 export class StaffingService {
   private baseUrl = `${environment.apiBaseUrl}/staffing-processes`;
-  
-  constructor(private http: HttpClient) {}
+
+  constructor(
+    private http: HttpClient,
+    private gql: Apollo
+  ) {}
 
   getAll(): Observable<StaffingProcessDTO[]> {
     if (environment.useMock) {
@@ -33,7 +38,6 @@ export class StaffingService {
 
   create(dto: Partial<StaffingProcessDTO>): Observable<StaffingProcessDTO> {
     if (environment.useMock) {
-      console.log("[MOCK] Creating staffing process:", dto);
       return of({
         ...dto,
         id: Date.now(),
@@ -60,5 +64,115 @@ export class StaffingService {
     } else {
       return this.http.delete<void>(`${this.baseUrl}/${id}`);
     }
+  }
+
+  getStaffingProcessesByEmployee(
+    username: string,
+    page: number,
+    size: number
+  ): Observable<StaffingProcess[]> {
+    return this.gql
+      .watchQuery<{ staffingProcessesByEmployee: StaffingProcess[] }>({
+        query: gql`
+          query GetStaffingProcesses(
+            $username: String!
+            $page: Int
+            $size: Int
+          ) {
+            staffingProcessesByEmployee(
+              username: $username
+              page: $page
+              size: $size
+            ) {
+              id
+              title
+              createdAt
+              isActive
+              client {
+                id
+                clientName
+              }
+            }
+          }
+        `,
+        variables: {
+          username: username,
+          page: page,
+          size: size,
+        },
+        fetchPolicy: "cache-and-network",
+      })
+      .valueChanges.pipe(map((r) => r.data.staffingProcessesByEmployee));
+  }
+
+  getStaffingProcessesByClient(
+    clientId: any,
+    page: any,
+    size: any
+  ): Observable<import("../models/client-dto.model").ClientDTO[]> {
+    return this.gql
+      .watchQuery<{ staffingProcessesByClient: ClientDTO[] }>({
+        query: gql`
+          query ($id: Int!, $page: Int, $size: Int) {
+            staffingProcessesByClient(clientId: $id, page: $page, size: $size) {
+              id
+              title
+              createdAt
+              isActive
+              employee {
+                id
+                username
+                firstName
+                lastName
+                email
+              }
+            }
+          }
+        `,
+        variables: {
+          id: parseInt(clientId),
+          page: page,
+          size: size,
+        },
+        fetchPolicy: "cache-and-network",
+      })
+      .valueChanges.pipe(map((r) => r.data.staffingProcessesByClient));
+  }
+
+  updateTitle(id: number, newTitle: string) {
+    return this.gql.mutate({
+      mutation: gql`
+        mutation updateProcessTitle($id: Int!, $newTitle: String!) {
+          updateProcessTitle(id: $id, newTitle: $newTitle) {
+            id
+            title
+          }
+        }
+      `,
+      variables: { id, newTitle },
+    });
+  }
+
+  updateClient(
+    clientId: any,
+    clientForm: {
+      clientName: string;
+      clientEmail: string;
+      contactPersonName: string;
+      contactPersonEmail: string;
+      contactPersonPhone: string;
+    }
+  ) {
+    return this.gql.mutate({
+      mutation: gql`
+        mutation UpdateClient($id: Int!, $input: ClientInput!) {
+          updateClient(id: $id, input: $input) {
+            id
+            clientName
+          }
+        }
+      `,
+      variables: { id: clientId, input: clientForm },
+    });
   }
 }

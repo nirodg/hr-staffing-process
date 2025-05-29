@@ -1,4 +1,5 @@
 import { AbstractEntity } from './abstract-dto.model';
+import { RoleDTO } from './role-dto.model';
 
 export interface UserDTO extends AbstractEntity {
   username?: string;
@@ -7,4 +8,5 @@ export interface UserDTO extends AbstractEntity {
   position?: string;
   email?: string;
   available?: boolean;
+  roles?: RoleDTO[]
 }

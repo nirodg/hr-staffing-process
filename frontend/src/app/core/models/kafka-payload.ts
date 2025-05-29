@@ -7,4 +7,6 @@ export interface KafkaPayload {
   userId?: string;
   entityId?: number;
   parentId?: number;
+  entity?: string;
+  username?: string;
 }
