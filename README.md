@@ -25,7 +25,7 @@ Our platform offers comprehensive staffing functionalities:
 * **Staffing Processes**: Create, list, mark complete, and comment on processes. Includes nested threads, inline replies, infinite scroll, and real-time updates.
 * **Clients & Employees**: Unified CRUD operations with reusable `UserFormComponent` and conditional form validation.
 * **Optimistic Locking**: Version checks on save with UI disable/spinner and conflict messaging.
-* **Pagination & Search**: Built-in Angular Material paginator and custom `SearchFilterPipe` for large data sets.
+* **Pagination & Search**: Built-in Angular Material paginator
 
 ---
 
@@ -62,10 +62,10 @@ Our platform offers comprehensive staffing functionalities:
 │   ├── resources/
 │   │   ├── db/migration/   # Flyway scripts
 │   │   └── application.yml # Configuration
-└── deployment/             # Deployment manifests & scripts
-    ├── docker-compose.yml
-    ├── deploy-local.sh     # Kubernetes deployment script
-    └── k8s/                # YAMLs for Kind/minikube
+├── deployment/             # Deployment manifests & scripts
+│   ├── deploy-local.sh     # Kubernetes deployment script
+│   └── k8s/                # YAMLs for Kind/minikube
+└── docker-compose.yml
 ```
 
 * **Lazy Loading**: `loadChildren` routes reduce initial bundle size.

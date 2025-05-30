@@ -1,4 +1,4 @@
-package org.db.hrsp.api;
+package org.db.hrsp.api.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.db.hrsp.api.config.security.JwtInterceptor;
